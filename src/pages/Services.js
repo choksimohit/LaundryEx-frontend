@@ -70,7 +70,7 @@ export const Services = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Our Services</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Laundry & Dry Cleaning Services in Colchester</h1>
           <p className="text-base md:text-lg lg:text-xl text-blue-100 max-w-3xl">
             Premium laundry and dry cleaning services in Colchester. Choose from our range of professional services tailored to your needs.
           </p>
