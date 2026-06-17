@@ -106,7 +106,7 @@ export const Landing = () => {
         data-testid="whatsapp-button"
       >
         <MessageCircle className="h-6 w-6" />
-        <span className="font-medium">Need Help?</span>
+        <span className="font-medium">Need Help.?</span>
       </a>
     </>
   );
