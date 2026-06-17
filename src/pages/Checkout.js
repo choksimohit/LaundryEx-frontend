@@ -1,0 +1,532 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Clock, MapPin, CreditCard, MessageSquare } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import api from '../utils/api';
+import { toast } from 'sonner';
+
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+
+const CheckoutForm = () => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [cart, setCart] = useState([]);
+  const [formData, setFormData] = useState({
+    pickup_date: '',
+    pickup_time: '',
+    pickup_instruction: '',
+    delivery_date: '',
+    delivery_time: '',
+    delivery_instruction: '',
+    address: '',
+    pin_code: '',
+    payment_method: 'cod',
+    customer_note: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+    const savedPinCode = sessionStorage.getItem('pinCode');
+    
+    // Set default dates
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(deliveryDate.getDate() + 2);
+    const deliveryStr = deliveryDate.toISOString().split('T')[0];
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      pin_code: savedPinCode || '',
+      pickup_date: todayStr,
+      pickup_time: '10:00-12:00',
+      pickup_instruction: 'in-person',
+      delivery_date: deliveryStr,
+      delivery_time: '14:00-16:00',
+      delivery_instruction: 'ring-wait'
+    }));
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Closure dates: 19 Apr - 25 Apr 2026
+  const closureStart = '2026-04-19';
+  const closureEnd = '2026-04-25';
+
+  const isDateInClosure = (dateStr) => {
+    if (!dateStr) return false;
+    return dateStr >= closureStart && dateStr <= closureEnd;
+  };
+
+  const pickupInClosure = isDateInClosure(formData.pickup_date);
+  const deliveryInClosure = isDateInClosure(formData.delivery_date);
+
+  const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discount = promoApplied ? +(totalAmount * 0.10).toFixed(2) : 0;
+  const afterDiscount = totalAmount - discount;
+  const deliveryCharge = afterDiscount >= 30 ? 0 : 4.45;
+  const grandTotal = afterDiscount + deliveryCharge;
+
+  const applyPromoCode = () => {
+    if (promoCode.trim().toUpperCase() === 'WELCOME10') {
+      setPromoApplied(true);
+      setPromoError('');
+      toast.success('Promo code applied! 10% off your order.');
+    } else {
+      setPromoApplied(false);
+      setPromoError('Invalid promo code');
+    }
+  };
+
+  const removePromoCode = () => {
+    setPromoCode('');
+    setPromoApplied(false);
+    setPromoError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const orderData = {
+        items: cart,
+        ...formData,
+        total_amount: grandTotal,
+        delivery_charge: deliveryCharge,
+        promo_code: promoApplied ? 'WELCOME10' : '',
+        discount_amount: discount,
+      };
+
+      // Handle Stripe payment
+      if (formData.payment_method === 'stripe') {
+        if (!stripe || !elements) {
+          toast.error('Stripe not loaded. Please refresh the page.');
+          setLoading(false);
+          return;
+        }
+
+        // Create payment intent
+        const intentResponse = await api.post('/payment/create-intent', {
+          amount: grandTotal,
+          order_id: 'temp_' + Date.now()
+        });
+
+        // Confirm card payment
+        const { error, paymentIntent } = await stripe.confirmCardPayment(
+          intentResponse.data.client_secret,
+          {
+            payment_method: {
+              card: elements.getElement(CardElement),
+            },
+          }
+        );
+
+        if (error) {
+          toast.error(error.message || 'Payment failed');
+          setLoading(false);
+          return;
+        }
+
+        if (paymentIntent.status === 'succeeded') {
+          // Create order after successful payment
+          const response = await api.post('/orders', orderData);
+          toast.success('Payment successful! Order placed.');
+          localStorage.removeItem('cart');
+          navigate(`/order-confirmation/${response.data.order_id}`);
+        }
+      } else {
+        // Handle COD payment
+        const response = await api.post('/orders', orderData);
+        toast.success('Order placed successfully!');
+        localStorage.removeItem('cart');
+        navigate(`/order-confirmation/${response.data.order_id}`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to place order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (cart.length === 0) {
+    navigate('/services');
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50" data-testid="checkout-page">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mb-8">Checkout</h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="bg-white rounded-2xl p-6 border border-slate-200">
+                <div className="flex items-center gap-2 mb-6">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Collection Date & Time</h2>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="pickup_date">Collection Date *</Label>
+                    <Input
+                      id="pickup_date"
+                      name="pickup_date"
+                      type="date"
+                      value={formData.pickup_date}
+                      onChange={handleChange}
+                      required
+                      className={`h-12 rounded-xl mt-2 ${pickupInClosure ? 'border-red-400 bg-red-50' : ''}`}
+                      data-testid="pickup-date-input"
+                    />
+                    {pickupInClosure && (
+                      <p className="text-red-600 text-sm mt-1 font-medium" data-testid="pickup-closure-warning">
+                        We are closed 19th-25th April for scheduled maintenance. Please select a date after 25th April.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="pickup_time">Collection Slot *</Label>
+                    <Select
+                      value={formData.pickup_time}
+                      onValueChange={(value) => setFormData({ ...formData, pickup_time: value })}
+                      required
+                    >
+                      <SelectTrigger className="h-12 rounded-xl mt-2" data-testid="pickup-slot-select">
+                        <SelectValue placeholder="- Select Slot -" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="08:00-10:00">8:00 AM - 10:00 AM</SelectItem>
+                        <SelectItem value="10:00-12:00">10:00 AM - 12:00 PM</SelectItem>
+                        <SelectItem value="12:00-14:00">12:00 PM - 2:00 PM</SelectItem>
+                        <SelectItem value="14:00-16:00">2:00 PM - 4:00 PM</SelectItem>
+                        <SelectItem value="16:00-18:00">4:00 PM - 6:00 PM</SelectItem>
+                        <SelectItem value="18:00-20:00">6:00 PM - 8:00 PM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="pickup_instruction">Collection Instruction *</Label>
+                    <Select
+                      value={formData.pickup_instruction || ''}
+                      onValueChange={(value) => setFormData({ ...formData, pickup_instruction: value })}
+                      required
+                    >
+                      <SelectTrigger className="h-12 rounded-xl mt-2" data-testid="pickup-instruction-select">
+                        <SelectValue placeholder="— How should driver collect? —" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="in-person">Driver collects from you (in person)</SelectItem>
+                        <SelectItem value="doorstep">Leave outside (doorstep/mailbox)</SelectItem>
+                        <SelectItem value="reception">Leave at reception/porter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 border border-slate-200">
+                <div className="flex items-center gap-2 mb-6">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Delivery Date & Time</h2>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="delivery_date">Delivery Date *</Label>
+                    <Input
+                      id="delivery_date"
+                      name="delivery_date"
+                      type="date"
+                      value={formData.delivery_date}
+                      onChange={handleChange}
+                      required
+                      className={`h-12 rounded-xl mt-2 ${deliveryInClosure ? 'border-red-400 bg-red-50' : ''}`}
+                      data-testid="delivery-date-input"
+                    />
+                    {deliveryInClosure && (
+                      <p className="text-red-600 text-sm mt-1 font-medium" data-testid="delivery-closure-warning">
+                        We are closed 19th-25th April for scheduled maintenance. Please select a date after 25th April.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="delivery_time">Delivery Slot *</Label>
+                    <Select
+                      value={formData.delivery_time}
+                      onValueChange={(value) => setFormData({ ...formData, delivery_time: value })}
+                      required
+                    >
+                      <SelectTrigger className="h-12 rounded-xl mt-2" data-testid="delivery-slot-select">
+                        <SelectValue placeholder="- Select Slot -" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="08:00-10:00">8:00 AM - 10:00 AM</SelectItem>
+                        <SelectItem value="10:00-12:00">10:00 AM - 12:00 PM</SelectItem>
+                        <SelectItem value="12:00-14:00">12:00 PM - 2:00 PM</SelectItem>
+                        <SelectItem value="14:00-16:00">2:00 PM - 4:00 PM</SelectItem>
+                        <SelectItem value="16:00-18:00">4:00 PM - 6:00 PM</SelectItem>
+                        <SelectItem value="18:00-20:00">6:00 PM - 8:00 PM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="delivery_instruction">Delivery Instruction *</Label>
+                    <Select
+                      value={formData.delivery_instruction || ''}
+                      onValueChange={(value) => setFormData({ ...formData, delivery_instruction: value })}
+                      required
+                    >
+                      <SelectTrigger className="h-12 rounded-xl mt-2" data-testid="delivery-instruction-select">
+                        <SelectValue placeholder="— How should driver deliver? —" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ring-wait">Ring bell and wait</SelectItem>
+                        <SelectItem value="ring-leave">Ring bell and leave</SelectItem>
+                        <SelectItem value="reception">Leave at reception/porter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 border border-slate-200">
+                <div className="flex items-center gap-2 mb-6">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Delivery Address</h2>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="address">Full Address</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      type="text"
+                      placeholder="Enter your full address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      required
+                      className="h-12 rounded-xl mt-2"
+                      data-testid="address-input"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="pin_code">Pin Code</Label>
+                    <Input
+                      id="pin_code"
+                      name="pin_code"
+                      type="text"
+                      value={formData.pin_code}
+                      onChange={handleChange}
+                      required
+                      className="h-12 rounded-xl mt-2"
+                      data-testid="pincode-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 border border-slate-200">
+                <div className="flex items-center gap-2 mb-6">
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Additional Notes</h2>
+                </div>
+                <div>
+                  <Label htmlFor="customer_note">Any special instructions? (Optional)</Label>
+                  <textarea
+                    id="customer_note"
+                    name="customer_note"
+                    placeholder="E.g. stain on collar of blue shirt, handle with care, use fragrance-free detergent..."
+                    value={formData.customer_note}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-xl text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    data-testid="customer-note-input"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 border border-slate-200">
+                <div className="flex items-center gap-2 mb-6">
+                  <CreditCard className="h-5 w-5 text-blue-600" />
+                  <h2 className="text-xl font-semibold">Payment Method</h2>
+                </div>
+                <RadioGroup
+                  value={formData.payment_method}
+                  onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
+                  data-testid="payment-method-group"
+                >
+                  <div className={`flex items-center space-x-2 p-4 border-2 rounded-xl ${formData.payment_method === 'cod' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                    <RadioGroupItem value="cod" id="cod" data-testid="payment-method-cod" />
+                    <Label htmlFor="cod" className="flex-1 cursor-pointer">
+                      <div className="font-semibold text-slate-800">Cash on Delivery</div>
+                      <div className="text-sm text-slate-600 mt-1">Pay when your order is delivered</div>
+                    </Label>
+                  </div>
+                  <div className={`flex items-center space-x-2 p-4 border-2 rounded-xl ${formData.payment_method === 'stripe' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                    <RadioGroupItem value="stripe" id="stripe" data-testid="payment-method-stripe" />
+                    <Label htmlFor="stripe" className="flex-1 cursor-pointer">
+                      <div className="font-semibold text-slate-800">Credit/Debit Card</div>
+                      <div className="text-sm text-slate-600 mt-1">Secure payment via Stripe</div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {formData.payment_method === 'stripe' && (
+                  <div className="mt-6 p-4 border-2 border-slate-200 rounded-xl">
+                    <Label className="mb-3 block text-sm font-medium">Card Details</Label>
+                    <CardElement
+                      options={{
+                        style: {
+                          base: {
+                            fontSize: '16px',
+                            color: '#1e293b',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                            '::placeholder': {
+                              color: '#94a3b8',
+                            },
+                          },
+                          invalid: {
+                            color: '#ef4444',
+                          },
+                        },
+                      }}
+                    />
+                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>Secured by Stripe</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading || pickupInClosure || deliveryInClosure}
+                className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white hover:scale-105 transition-all disabled:opacity-50"
+                data-testid="place-order-button"
+              >
+                {loading ? 'Processing...' : formData.payment_method === 'stripe' ? `Pay £${grandTotal.toFixed(2)}` : `Place Order - £${grandTotal.toFixed(2)}`}
+              </Button>
+            </form>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 sticky top-24">
+              <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
+              <div className="space-y-4 mb-6">
+                {cart.map(item => (
+                  <div key={item.product_id} className="flex justify-between text-sm" data-testid={`summary-item-${item.product_id}`}>
+                    <span className="text-slate-600">
+                      {item.product_name} × {item.quantity}
+                    </span>
+                    <span className="font-medium">£{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-slate-200 pt-4 space-y-3">
+                {/* Promo Code */}
+                <div className="pb-3">
+                  {promoApplied ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2" data-testid="promo-applied">
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-700 font-semibold text-sm">WELCOME10</span>
+                        <span className="text-green-600 text-xs">(-10%)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removePromoCode}
+                        className="text-red-500 hover:text-red-700 text-xs font-medium"
+                        data-testid="remove-promo-button"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Promo code"
+                          value={promoCode}
+                          onChange={(e) => { setPromoCode(e.target.value); setPromoError(''); }}
+                          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          data-testid="promo-code-input"
+                        />
+                        <button
+                          type="button"
+                          onClick={applyPromoCode}
+                          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                          data-testid="apply-promo-button"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                      {promoError && <p className="text-red-500 text-xs mt-1" data-testid="promo-error">{promoError}</p>}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Subtotal</span>
+                  <span className="font-medium" data-testid="checkout-subtotal">£{totalAmount.toFixed(2)}</span>
+                </div>
+                {promoApplied && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">Discount (10%)</span>
+                    <span className="font-medium text-green-600" data-testid="checkout-discount">-£{discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Delivery</span>
+                  {deliveryCharge > 0 ? (
+                    <span className="font-medium text-amber-600" data-testid="checkout-delivery-charge">£{deliveryCharge.toFixed(2)}</span>
+                  ) : (
+                    <span className="font-medium text-green-600" data-testid="checkout-delivery-charge">FREE</span>
+                  )}
+                </div>
+                <div className="border-t border-slate-200 pt-3 flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total</span>
+                  <span className="text-2xl font-bold text-blue-600" data-testid="checkout-total">£{grandTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const Checkout = () => {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm />
+    </Elements>
+  );
+};
