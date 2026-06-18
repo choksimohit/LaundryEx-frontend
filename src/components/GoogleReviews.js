@@ -144,20 +144,11 @@ export const GoogleReviews = () => {
           </div>
         </div>
 
-        {/* Row 1: first 3 reviews */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {reviews.slice(0, 3).map((review, i) => (
+          {reviews.map((review, i) => (
             <ReviewCard key={i} review={review} index={i} />
           ))}
         </div>
-        {/* Row 2: remaining reviews centered */}
-        {reviews.length > 3 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 lg:max-w-[66%] lg:mx-auto">
-            {reviews.slice(3).map((review, i) => (
-              <ReviewCard key={i + 3} review={review} index={i + 3} />
-            ))}
-          </div>
-        )}
 
         <div className="text-center mt-6">
           <a
