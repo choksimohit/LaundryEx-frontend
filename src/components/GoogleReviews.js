@@ -2,50 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import api from '../utils/api';
 
-const STATIC_REVIEWS = [
-  {
-    author: "Sarah M.",
-    rating: 5,
-    text: "Absolutely brilliant service! My clothes came back perfectly clean and beautifully folded. The collection and delivery was right on time. Will definitely use again.",
-    relative_time: "2 weeks ago",
-    author_photo: "",
-  },
-  {
-    author: "James T.",
-    rating: 5,
-    text: "Used Laundry Express for my dry cleaning and I'm so impressed. Super easy to book online, driver was friendly, and everything was returned spotless. Highly recommend!",
-    relative_time: "1 month ago",
-    author_photo: "",
-  },
-  {
-    author: "Priya K.",
-    rating: 5,
-    text: "Fantastic service from start to finish. The app is easy to use, collection was prompt, and my laundry was returned in perfect condition. Best laundry service in Colchester!",
-    relative_time: "3 weeks ago",
-    author_photo: "",
-  },
-  {
-    author: "David R.",
-    rating: 5,
-    text: "Really pleased with this service. Great value for money and my shirts have never looked so good. The free collection and delivery makes it so convenient.",
-    relative_time: "1 month ago",
-    author_photo: "",
-  },
-  {
-    author: "Emma L.",
-    rating: 5,
-    text: "I've tried a few laundry services but Laundry Express is by far the best. Quick, reliable and my clothes always come back smelling fresh and neatly pressed.",
-    relative_time: "2 months ago",
-    author_photo: "",
-  },
-  {
-    author: "Tom H.",
-    rating: 5,
-    text: "Exceptional service — collected on time, everything returned perfectly clean and ironed. Saves me so much time every week.",
-    relative_time: "3 months ago",
-    author_photo: "",
-  },
-];
 
 const AVATAR_COLORS = [
   'bg-emerald-600',
@@ -109,8 +65,8 @@ const ReviewCard = ({ review, index }) => {
 };
 
 export const GoogleReviews = () => {
-  const [reviews, setReviews] = useState(STATIC_REVIEWS);
-  const [overallRating, setOverallRating] = useState(5.0);
+  const [reviews, setReviews] = useState([]);
+  const [overallRating, setOverallRating] = useState(null);
   const [totalRatings, setTotalRatings] = useState(null);
 
   useEffect(() => {
@@ -125,6 +81,8 @@ export const GoogleReviews = () => {
       .catch(() => {});
   }, []);
 
+  if (reviews.length === 0) return null;
+
   return (
     <section className="py-16 px-6 bg-blue-900">
       <div className="max-w-6xl mx-auto">
@@ -134,7 +92,7 @@ export const GoogleReviews = () => {
             <span className="text-stone-500 font-medium text-sm">Google Reviews</span>
           </div>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-5xl font-bold text-white">{Number(overallRating).toFixed(1)}</span>
+            <span className="text-5xl font-bold text-white">{overallRating ? Number(overallRating).toFixed(1) : ''}</span>
             <div className="text-left">
               <StarRating rating={Math.round(overallRating)} />
               <p className="text-sm text-blue-200 mt-1">
