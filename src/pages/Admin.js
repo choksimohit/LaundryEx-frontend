@@ -16,7 +16,7 @@ import { ProductManagement } from './ProductManagement';
 import api from '../utils/api';
 import { toast } from 'sonner';
 import { getUser } from '../utils/auth';
-import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star } from 'lucide-react';
+import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star, Tag } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -114,6 +114,7 @@ export const Admin = () => {
   const [usersLoaded, setUsersLoaded] = useState(false);
   const [userSort, setUserSort] = useState({ key: 'created_at', dir: 'desc' });
   const [reviewModal, setReviewModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
+  const [welcomeModal, setWelcomeModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
   const [orderSort, setOrderSort] = useState({ key: 'created_at', dir: 'desc' });
   const [orderFilter, setOrderFilter] = useState({ status: '', search: '' });
   const [business, setBusiness] = useState(null);
@@ -677,6 +678,117 @@ export const Admin = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <Button
+                  onClick={async () => {
+                    setWelcomeModal(m => ({ ...m, open: true, loading: true, eligible: [], selected: new Set() }));
+                    try {
+                      const res = await api.get('/admin/welcome-offer-preview');
+                      const eligible = res.data.eligible;
+                      setWelcomeModal(m => ({ ...m, loading: false, eligible, selected: new Set(eligible.map(u => u.email)) }));
+                    } catch {
+                      toast.error('Failed to load preview');
+                      setWelcomeModal(m => ({ ...m, open: false, loading: false }));
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 shrink-0"
+                >
+                  <Tag className="h-4 w-4" />
+                  Send Welcome Offer
+                </Button>
+
+                <Dialog open={welcomeModal.open} onOpenChange={open => setWelcomeModal(m => ({ ...m, open }))}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Tag className="h-5 w-5 text-green-600" />
+                        Send WELCOME10 Offer
+                      </DialogTitle>
+                    </DialogHeader>
+
+                    {welcomeModal.loading ? (
+                      <div className="py-8 text-center text-slate-400">Loading recipients...</div>
+                    ) : welcomeModal.eligible.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <p className="text-slate-500 font-medium">No eligible customers</p>
+                        <p className="text-sm text-slate-400 mt-1">All registered users without orders were emailed within the last 30 days.</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-sm text-slate-500">
+                            <span className="font-semibold text-slate-700">{welcomeModal.selected.size}</span> of <span className="font-semibold text-slate-700">{welcomeModal.eligible.length}</span> selected
+                          </p>
+                          <button
+                            className="text-xs text-blue-600 hover:underline"
+                            onClick={() => setWelcomeModal(m => ({
+                              ...m,
+                              selected: m.selected.size === m.eligible.length
+                                ? new Set()
+                                : new Set(m.eligible.map(u => u.email))
+                            }))}
+                          >
+                            {welcomeModal.selected.size === welcomeModal.eligible.length ? 'Deselect all' : 'Select all'}
+                          </button>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto border border-slate-100 rounded-xl divide-y divide-slate-50">
+                          {welcomeModal.eligible.map((u, i) => {
+                            const checked = welcomeModal.selected.has(u.email);
+                            return (
+                              <label key={i} className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-slate-50">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => setWelcomeModal(m => {
+                                    const next = new Set(m.selected);
+                                    checked ? next.delete(u.email) : next.add(u.email);
+                                    return { ...m, selected: next };
+                                  })}
+                                  className="h-4 w-4 rounded border-slate-300 text-green-600 cursor-pointer"
+                                />
+                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-xs shrink-0">
+                                  {(u.name || '?').charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-slate-800 truncate">{u.name || '—'}</p>
+                                  <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    <DialogFooter className="gap-2 mt-2">
+                      <Button variant="outline" onClick={() => setWelcomeModal(m => ({ ...m, open: false }))}>
+                        Cancel
+                      </Button>
+                      {!welcomeModal.loading && welcomeModal.eligible.length > 0 && (
+                        <Button
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          disabled={welcomeModal.sending || welcomeModal.selected.size === 0}
+                          onClick={async () => {
+                            setWelcomeModal(m => ({ ...m, sending: true }));
+                            try {
+                              const res = await api.post('/admin/send-welcome-offer', {
+                                selected_emails: [...welcomeModal.selected]
+                              });
+                              toast.success(res.data.message);
+                              setWelcomeModal(m => ({ ...m, open: false, sending: false }));
+                            } catch {
+                              toast.error('Failed to send welcome offer emails');
+                              setWelcomeModal(m => ({ ...m, sending: false }));
+                            }
+                          }}
+                        >
+                          {welcomeModal.sending ? 'Sending...' : `Send to ${welcomeModal.selected.size} customer${welcomeModal.selected.size !== 1 ? 's' : ''}`}
+                        </Button>
+                      )}
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
                 {users.length > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-500 shrink-0">Sort by</span>
@@ -760,6 +872,12 @@ export const Admin = () => {
                           <span className="ml-auto flex items-center gap-1 text-amber-500">
                             <Star className="h-3 w-3" />
                             Review email sent {new Date(u.review_request_sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        )}
+                        {u.welcome_offer_sent_at && (
+                          <span className="flex items-center gap-1 text-green-600">
+                            <Tag className="h-3 w-3" />
+                            Welcome offer sent {new Date(u.welcome_offer_sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         )}
                       </div>
