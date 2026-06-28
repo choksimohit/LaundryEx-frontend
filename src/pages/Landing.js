@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Search, MessageCircle, ArrowRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import api from '../utils/api';
@@ -10,7 +10,14 @@ import { GoogleReviews } from '../components/GoogleReviews';
 export const Landing = () => {
   const [pinCode, setPinCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [blogPosts, setBlogPosts] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get('/blog').then(res => {
+      setBlogPosts((res.data || []).slice(0, 3));
+    }).catch(() => {});
+  }, []);
 
   const checkAvailability = async () => {
     if (!pinCode || pinCode.length < 3) {
@@ -95,6 +102,46 @@ export const Landing = () => {
           </div>
         </div>
       </div>
+
+      {blogPosts.length > 0 && (
+        <section className="py-14 px-6 bg-slate-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">From the Blog</p>
+                <h2 className="text-2xl font-bold text-slate-800">Laundry Tips & News</h2>
+              </div>
+              <Link to="/blog" className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                View all <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {blogPosts.map((post, i) => (
+                <Link
+                  key={i}
+                  to={`/blog/${post.slug}`}
+                  className="group bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-blue-200 transition-all duration-200 overflow-hidden flex flex-col"
+                >
+                  {post.cover_image_url && (
+                    <img src={post.cover_image_url} alt={post.title} className="w-full h-44 object-cover" />
+                  )}
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="font-semibold text-slate-800 text-base leading-snug mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      {post.title}
+                    </h3>
+                    {post.excerpt && (
+                      <p className="text-sm text-slate-500 leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
+                    )}
+                    <div className="flex items-center gap-1 mt-4 text-xs font-medium text-blue-600">
+                      Read more <ArrowRight className="h-3 w-3" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <GoogleReviews />
 
