@@ -38,7 +38,9 @@ const CheckoutForm = () => {
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
+  const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoError, setPromoError] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,23 +87,31 @@ const CheckoutForm = () => {
   const deliveryInClosure = isDateInClosure(formData.delivery_date);
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discount = promoApplied ? +(totalAmount * 0.10).toFixed(2) : 0;
+  const discount = promoApplied ? +(totalAmount * promoDiscount / 100).toFixed(2) : 0;
   const afterDiscount = totalAmount - discount;
   const deliveryCharge = afterDiscount >= 30 ? 0 : 4.45;
   const grandTotal = afterDiscount + deliveryCharge;
 
-  const applyPromoCode = () => {
-    if (promoCode.trim().toUpperCase() === 'WELCOME10') {
+  const applyPromoCode = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError('');
+    try {
+      const res = await api.post('/promo/validate', { code: promoCode.trim() });
+      setPromoDiscount(res.data.discount_percent);
       setPromoApplied(true);
-      setPromoError('');
-      toast.success('Promo code applied! 10% off your order.');
-    } else {
+      toast.success(`Promo code applied! ${res.data.discount_percent}% off your order.`);
+    } catch (err) {
       setPromoApplied(false);
-      setPromoError('Invalid promo code');
+      setPromoDiscount(0);
+      setPromoError(err.response?.data?.detail || 'Invalid promo code');
+    } finally {
+      setPromoLoading(false);
     }
   };
 
   const removePromoCode = () => {
+    setPromoDiscount(0);
     setPromoCode('');
     setPromoApplied(false);
     setPromoError('');
@@ -455,8 +465,8 @@ const CheckoutForm = () => {
                   {promoApplied ? (
                     <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2" data-testid="promo-applied">
                       <div className="flex items-center gap-2">
-                        <span className="text-green-700 font-semibold text-sm">WELCOME10</span>
-                        <span className="text-green-600 text-xs">(-10%)</span>
+                        <span className="text-green-700 font-semibold text-sm">{promoCode.toUpperCase()}</span>
+                        <span className="text-green-600 text-xs">(-{promoDiscount}%)</span>
                       </div>
                       <button
                         type="button"
@@ -481,10 +491,11 @@ const CheckoutForm = () => {
                         <button
                           type="button"
                           onClick={applyPromoCode}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                          disabled={promoLoading}
+                          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
                           data-testid="apply-promo-button"
                         >
-                          Apply
+                          {promoLoading ? '...' : 'Apply'}
                         </button>
                       </div>
                       {promoError && <p className="text-red-500 text-xs mt-1" data-testid="promo-error">{promoError}</p>}
@@ -498,7 +509,7 @@ const CheckoutForm = () => {
                 </div>
                 {promoApplied && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-green-600">Discount (10%)</span>
+                    <span className="text-green-600">Discount ({promoDiscount}%)</span>
                     <span className="font-medium text-green-600" data-testid="checkout-discount">-£{discount.toFixed(2)}</span>
                   </div>
                 )}

@@ -16,7 +16,7 @@ import { ProductManagement } from './ProductManagement';
 import api from '../utils/api';
 import { toast } from 'sonner';
 import { getUser } from '../utils/auth';
-import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star, Tag } from 'lucide-react';
+import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star, Tag, Percent, ToggleLeft, ToggleRight, Plus } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -114,6 +114,9 @@ export const Admin = () => {
   const [usersLoaded, setUsersLoaded] = useState(false);
   const [userSort, setUserSort] = useState({ key: 'created_at', dir: 'desc' });
   const [reviewModal, setReviewModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
+  const [promoCodes, setPromoCodes] = useState([]);
+  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: '', description: '', max_uses: '' });
+  const [promoLoading, setPromoLoading] = useState(false);
   const [welcomeModal, setWelcomeModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
   const [orderSort, setOrderSort] = useState({ key: 'created_at', dir: 'desc' });
   const [orderFilter, setOrderFilter] = useState({ status: '', search: '' });
@@ -397,6 +400,7 @@ export const Admin = () => {
             <TabsTrigger value="categories" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-categories">Categories</TabsTrigger>
             <TabsTrigger value="businesses" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-businesses">Business Settings</TabsTrigger>
             <TabsTrigger value="blog" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-blog">Blog</TabsTrigger>
+            <TabsTrigger value="promo" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={async () => { const res = await api.get('/admin/promo-codes'); setPromoCodes(res.data); }}>Promo Codes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders" className="space-y-6" data-testid="orders-tab-content">
@@ -1201,6 +1205,139 @@ export const Admin = () => {
                 )}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="promo" className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 border border-slate-200">
+              <h2 className="text-xl font-semibold text-blue-600 mb-6">Promo Codes</h2>
+
+              {/* Create form */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2"><Plus className="h-4 w-4" /> New Promo Code</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SUMMER20"
+                      value={promoForm.code}
+                      onChange={e => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Discount %</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 10"
+                      min="1" max="100"
+                      value={promoForm.discount_percent}
+                      onChange={e => setPromoForm(f => ({ ...f, discount_percent: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Description</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Summer offer"
+                      value={promoForm.description}
+                      onChange={e => setPromoForm(f => ({ ...f, description: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Max Uses (blank = unlimited)</label>
+                    <input
+                      type="number"
+                      placeholder="Unlimited"
+                      min="1"
+                      value={promoForm.max_uses}
+                      onChange={e => setPromoForm(f => ({ ...f, max_uses: e.target.value }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <Button
+                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={promoLoading || !promoForm.code || !promoForm.discount_percent}
+                  onClick={async () => {
+                    setPromoLoading(true);
+                    try {
+                      await api.post('/admin/promo-codes', {
+                        code: promoForm.code,
+                        discount_percent: parseFloat(promoForm.discount_percent),
+                        description: promoForm.description,
+                        max_uses: promoForm.max_uses ? parseInt(promoForm.max_uses) : null,
+                        active: true,
+                      });
+                      const res = await api.get('/admin/promo-codes');
+                      setPromoCodes(res.data);
+                      setPromoForm({ code: '', discount_percent: '', description: '', max_uses: '' });
+                      toast.success('Promo code created');
+                    } catch (err) {
+                      toast.error(err.response?.data?.detail || 'Failed to create promo code');
+                    } finally {
+                      setPromoLoading(false);
+                    }
+                  }}
+                >
+                  Create Code
+                </Button>
+              </div>
+
+              {/* Codes list */}
+              {promoCodes.length === 0 ? (
+                <p className="text-slate-400 text-sm text-center py-8">No promo codes yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {promoCodes.map(p => (
+                    <div key={p.id} className="flex items-center justify-between border border-slate-100 rounded-xl px-4 py-3 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-blue-50 rounded-lg px-3 py-1.5">
+                          <span className="font-bold text-blue-700 text-sm tracking-widest">{p.code}</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-800">{p.discount_percent}% off</span>
+                            {p.description && <span className="text-xs text-slate-400">· {p.description}</span>}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {p.uses_count} use{p.uses_count !== 1 ? 's' : ''}
+                            {p.max_uses ? ` / ${p.max_uses} max` : ' · unlimited'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            await api.patch(`/admin/promo-codes/${p.id}`, { active: !p.active });
+                            const res = await api.get('/admin/promo-codes');
+                            setPromoCodes(res.data);
+                            toast.success(p.active ? 'Code deactivated' : 'Code activated');
+                          }}
+                          className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${p.active ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                        >
+                          {p.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                          {p.active ? 'Active' : 'Inactive'}
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Delete ${p.code}?`)) return;
+                            await api.delete(`/admin/promo-codes/${p.id}`);
+                            setPromoCodes(c => c.filter(x => x.id !== p.id));
+                            toast.success('Promo code deleted');
+                          }}
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
