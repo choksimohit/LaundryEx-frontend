@@ -116,7 +116,7 @@ export const Admin = () => {
   const [reviewModal, setReviewModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
   const [promoCodes, setPromoCodes] = useState([]);
   const [promoStats, setPromoStats] = useState(null);
-  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: '', description: '', max_uses: '' });
+  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: '', description: '', max_uses: '', one_use_per_user: true });
   const [promoLoading, setPromoLoading] = useState(false);
   const [expandedPromo, setExpandedPromo] = useState(null);
 
@@ -1270,6 +1270,17 @@ export const Admin = () => {
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPromoForm(f => ({ ...f, one_use_per_user: !f.one_use_per_user }))}
+                    className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${promoForm.one_use_per_user ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                  >
+                    {promoForm.one_use_per_user ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                    One use per customer
+                  </button>
+                  <span className="text-xs text-slate-400">{promoForm.one_use_per_user ? 'Each customer can only use this code once' : 'Customers can use this code multiple times'}</span>
+                </div>
                 <Button
                   className="mt-3 bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={promoLoading || !promoForm.code || !promoForm.discount_percent}
@@ -1282,9 +1293,10 @@ export const Admin = () => {
                         description: promoForm.description,
                         max_uses: promoForm.max_uses ? parseInt(promoForm.max_uses) : null,
                         active: true,
+                        one_use_per_user: promoForm.one_use_per_user,
                       });
                       await loadPromoData();
-                      setPromoForm({ code: '', discount_percent: '', description: '', max_uses: '' });
+                      setPromoForm({ code: '', discount_percent: '', description: '', max_uses: '', one_use_per_user: true });
                       toast.success('Promo code created');
                     } catch (err) {
                       toast.error(err.response?.data?.detail || 'Failed to create promo code');
@@ -1317,6 +1329,9 @@ export const Admin = () => {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-sm font-semibold text-slate-800">{p.discount_percent}% off</span>
                                 {p.description && <span className="text-xs text-slate-400">· {p.description}</span>}
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.one_use_per_user !== false ? 'bg-purple-50 text-purple-600' : 'bg-slate-100 text-slate-500'}`}>
+                                  {p.one_use_per_user !== false ? '1× per customer' : 'Multi-use'}
+                                </span>
                               </div>
                               <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                                 <span className="text-xs text-slate-400">{p.uses_count} use{p.uses_count !== 1 ? 's' : ''}{p.max_uses ? ` / ${p.max_uses} max` : ' · unlimited'}</span>
