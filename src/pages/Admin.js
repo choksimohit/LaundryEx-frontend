@@ -116,7 +116,7 @@ export const Admin = () => {
   const [reviewModal, setReviewModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
   const [promoCodes, setPromoCodes] = useState([]);
   const [promoStats, setPromoStats] = useState(null);
-  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: '', description: '', max_uses: '', one_use_per_user: true });
+  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: '', description: '', max_uses: '', one_use_per_user: true, group: '' });
   const [promoLoading, setPromoLoading] = useState(false);
   const [expandedPromo, setExpandedPromo] = useState(null);
 
@@ -1269,6 +1269,12 @@ export const Admin = () => {
                       onChange={e => setPromoForm(f => ({ ...f, max_uses: e.target.value }))}
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Group (optional)</label>
+                    <input type="text" placeholder="e.g. welcome_offer" value={promoForm.group}
+                      onChange={e => setPromoForm(f => ({ ...f, group: e.target.value.toLowerCase().replace(/\s+/g, '_') }))}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
                 </div>
                 <div className="mt-3 flex items-center gap-3">
                   <button
@@ -1294,9 +1300,10 @@ export const Admin = () => {
                         max_uses: promoForm.max_uses ? parseInt(promoForm.max_uses) : null,
                         active: true,
                         one_use_per_user: promoForm.one_use_per_user,
+                        group: promoForm.group || null,
                       });
                       await loadPromoData();
-                      setPromoForm({ code: '', discount_percent: '', description: '', max_uses: '', one_use_per_user: true });
+                      setPromoForm({ code: '', discount_percent: '', description: '', max_uses: '', one_use_per_user: true, group: '' });
                       toast.success('Promo code created');
                     } catch (err) {
                       toast.error(err.response?.data?.detail || 'Failed to create promo code');
@@ -1332,6 +1339,7 @@ export const Admin = () => {
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.one_use_per_user !== false ? 'bg-purple-50 text-purple-600' : 'bg-slate-100 text-slate-500'}`}>
                                   {p.one_use_per_user !== false ? '1× per customer' : 'Multi-use'}
                                 </span>
+                                {p.group && <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-50 text-orange-600">Group: {p.group}</span>}
                               </div>
                               <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                                 <span className="text-xs text-slate-400">{p.uses_count} use{p.uses_count !== 1 ? 's' : ''}{p.max_uses ? ` / ${p.max_uses} max` : ' · unlimited'}</span>
