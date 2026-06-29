@@ -115,8 +115,19 @@ export const Admin = () => {
   const [userSort, setUserSort] = useState({ key: 'created_at', dir: 'desc' });
   const [reviewModal, setReviewModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
   const [promoCodes, setPromoCodes] = useState([]);
+  const [promoStats, setPromoStats] = useState(null);
   const [promoForm, setPromoForm] = useState({ code: '', discount_percent: '', description: '', max_uses: '' });
   const [promoLoading, setPromoLoading] = useState(false);
+  const [expandedPromo, setExpandedPromo] = useState(null);
+
+  const loadPromoData = async () => {
+    const [codesRes, statsRes] = await Promise.all([
+      api.get('/admin/promo-codes'),
+      api.get('/admin/promo-codes/stats'),
+    ]);
+    setPromoCodes(codesRes.data);
+    setPromoStats(statsRes.data);
+  };
   const [welcomeModal, setWelcomeModal] = useState({ open: false, loading: false, sending: false, eligible: [], selected: new Set() });
   const [orderSort, setOrderSort] = useState({ key: 'created_at', dir: 'desc' });
   const [orderFilter, setOrderFilter] = useState({ status: '', search: '' });
@@ -400,7 +411,7 @@ export const Admin = () => {
             <TabsTrigger value="categories" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-categories">Categories</TabsTrigger>
             <TabsTrigger value="businesses" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-businesses">Business Settings</TabsTrigger>
             <TabsTrigger value="blog" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="tab-blog">Blog</TabsTrigger>
-            <TabsTrigger value="promo" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={async () => { const res = await api.get('/admin/promo-codes'); setPromoCodes(res.data); }}>Promo Codes</TabsTrigger>
+            <TabsTrigger value="promo" className="rounded-full text-slate-700 data-[state=active]:bg-blue-600 data-[state=active]:text-white" onClick={loadPromoData}>Promo Codes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders" className="space-y-6" data-testid="orders-tab-content">
@@ -1208,6 +1219,25 @@ export const Admin = () => {
           </TabsContent>
 
           <TabsContent value="promo" className="space-y-6">
+
+            {/* Summary banner */}
+            {promoStats && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 text-center">
+                  <p className="text-3xl font-bold text-blue-600">{promoStats.summary.total_promo_orders}</p>
+                  <p className="text-sm text-slate-500 mt-1">Orders from promo codes</p>
+                </div>
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 text-center">
+                  <p className="text-3xl font-bold text-red-500">£{promoStats.summary.total_discount_given.toFixed(2)}</p>
+                  <p className="text-sm text-slate-500 mt-1">Total discount given</p>
+                </div>
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 text-center">
+                  <p className="text-3xl font-bold text-green-600">{promoStats.summary.best_code || '—'}</p>
+                  <p className="text-sm text-slate-500 mt-1">Best performing code</p>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl p-6 border border-slate-200">
               <h2 className="text-xl font-semibold text-blue-600 mb-6">Promo Codes</h2>
 
@@ -1217,45 +1247,27 @@ export const Admin = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">Code</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. SUMMER20"
-                      value={promoForm.code}
+                    <input type="text" placeholder="e.g. SUMMER20" value={promoForm.code}
                       onChange={e => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">Discount %</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 10"
-                      min="1" max="100"
-                      value={promoForm.discount_percent}
+                    <input type="number" placeholder="e.g. 10" min="1" max="100" value={promoForm.discount_percent}
                       onChange={e => setPromoForm(f => ({ ...f, discount_percent: e.target.value }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">Description</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Summer offer"
-                      value={promoForm.description}
+                    <input type="text" placeholder="e.g. Summer offer" value={promoForm.description}
                       onChange={e => setPromoForm(f => ({ ...f, description: e.target.value }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
                     <label className="text-xs text-slate-500 mb-1 block">Max Uses (blank = unlimited)</label>
-                    <input
-                      type="number"
-                      placeholder="Unlimited"
-                      min="1"
-                      value={promoForm.max_uses}
+                    <input type="number" placeholder="Unlimited" min="1" value={promoForm.max_uses}
                       onChange={e => setPromoForm(f => ({ ...f, max_uses: e.target.value }))}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
                 <Button
@@ -1271,8 +1283,7 @@ export const Admin = () => {
                         max_uses: promoForm.max_uses ? parseInt(promoForm.max_uses) : null,
                         active: true,
                       });
-                      const res = await api.get('/admin/promo-codes');
-                      setPromoCodes(res.data);
+                      await loadPromoData();
                       setPromoForm({ code: '', discount_percent: '', description: '', max_uses: '' });
                       toast.success('Promo code created');
                     } catch (err) {
@@ -1291,50 +1302,95 @@ export const Admin = () => {
                 <p className="text-slate-400 text-sm text-center py-8">No promo codes yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {promoCodes.map(p => (
-                    <div key={p.id} className="flex items-center justify-between border border-slate-100 rounded-xl px-4 py-3 hover:border-blue-200 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-blue-50 rounded-lg px-3 py-1.5">
-                          <span className="font-bold text-blue-700 text-sm tracking-widest">{p.code}</span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-800">{p.discount_percent}% off</span>
-                            {p.description && <span className="text-xs text-slate-400">· {p.description}</span>}
+                  {promoCodes.map(p => {
+                    const stats = promoStats?.by_code?.[p.code];
+                    const isExpanded = expandedPromo === p.code;
+                    return (
+                      <div key={p.id} className="border border-slate-100 rounded-xl overflow-hidden hover:border-blue-200 transition-colors">
+                        {/* Code header */}
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            <div className="bg-blue-50 rounded-lg px-3 py-1.5 shrink-0">
+                              <span className="font-bold text-blue-700 text-sm tracking-widest">{p.code}</span>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-semibold text-slate-800">{p.discount_percent}% off</span>
+                                {p.description && <span className="text-xs text-slate-400">· {p.description}</span>}
+                              </div>
+                              <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                                <span className="text-xs text-slate-400">{p.uses_count} use{p.uses_count !== 1 ? 's' : ''}{p.max_uses ? ` / ${p.max_uses} max` : ' · unlimited'}</span>
+                                {stats && <>
+                                  <span className="text-xs text-blue-600 font-medium">{stats.order_count} order{stats.order_count !== 1 ? 's' : ''}</span>
+                                  <span className="text-xs text-green-600 font-medium">£{stats.total_revenue.toFixed(2)} revenue</span>
+                                  <span className="text-xs text-red-500 font-medium">-£{stats.total_discount.toFixed(2)} discount</span>
+                                  {stats.last_used && <span className="text-xs text-slate-400">Last used {new Date(stats.last_used).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                                </>}
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {p.uses_count} use{p.uses_count !== 1 ? 's' : ''}
-                            {p.max_uses ? ` / ${p.max_uses} max` : ' · unlimited'}
-                          </p>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {stats?.order_count > 0 && (
+                              <button
+                                onClick={() => setExpandedPromo(isExpanded ? null : p.code)}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                              >
+                                {isExpanded ? 'Hide orders ▲' : `View ${stats.order_count} order${stats.order_count !== 1 ? 's' : ''} ▼`}
+                              </button>
+                            )}
+                            <button
+                              onClick={async () => {
+                                await api.patch(`/admin/promo-codes/${p.id}`, { active: !p.active });
+                                await loadPromoData();
+                                toast.success(p.active ? 'Code deactivated' : 'Code activated');
+                              }}
+                              className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${p.active ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                            >
+                              {p.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                              {p.active ? 'Active' : 'Inactive'}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm(`Delete ${p.code}?`)) return;
+                                await api.delete(`/admin/promo-codes/${p.id}`);
+                                await loadPromoData();
+                                toast.success('Promo code deleted');
+                              }}
+                              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
+
+                        {/* Expanded orders list */}
+                        {isExpanded && stats?.orders?.length > 0 && (
+                          <div className="border-t border-slate-100 bg-slate-50 divide-y divide-slate-100">
+                            <div className="grid grid-cols-4 px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                              <span>Customer</span>
+                              <span>Order #</span>
+                              <span>Date</span>
+                              <span className="text-right">Total / Discount</span>
+                            </div>
+                            {[...stats.orders].sort((a, b) => b.created_at.localeCompare(a.created_at)).map((o, i) => (
+                              <div key={i} className="grid grid-cols-4 px-4 py-2.5 text-sm items-center">
+                                <div>
+                                  <p className="font-medium text-slate-700 truncate">{o.user_name}</p>
+                                  <p className="text-xs text-slate-400 truncate">{o.user_email}</p>
+                                </div>
+                                <span className="text-slate-600 font-mono">#{o.order_number}</span>
+                                <span className="text-slate-500 text-xs">{new Date(o.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                <div className="text-right">
+                                  <p className="font-semibold text-slate-800">£{o.total_amount.toFixed(2)}</p>
+                                  <p className="text-xs text-red-500">-£{o.discount_amount.toFixed(2)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={async () => {
-                            await api.patch(`/admin/promo-codes/${p.id}`, { active: !p.active });
-                            const res = await api.get('/admin/promo-codes');
-                            setPromoCodes(res.data);
-                            toast.success(p.active ? 'Code deactivated' : 'Code activated');
-                          }}
-                          className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${p.active ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                        >
-                          {p.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                          {p.active ? 'Active' : 'Inactive'}
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm(`Delete ${p.code}?`)) return;
-                            await api.delete(`/admin/promo-codes/${p.id}`);
-                            setPromoCodes(c => c.filter(x => x.id !== p.id));
-                            toast.success('Promo code deleted');
-                          }}
-                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
