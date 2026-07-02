@@ -13,14 +13,11 @@
   ],
   "redirects": [
     { "source": "/about", "destination": "/", "permanent": true },
+    { "source": "/faq", "destination": "/services", "permanent": true },
     { "source": "/pricing", "destination": "/order", "permanent": true },
     { "source": "/product/:slug*", "destination": "/order", "permanent": true }
   ],
   "rewrites": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "https://laundry-ex.vercel.app/api/sitemap-xml"
-    },
     {
       "source": "/zoho-domain-verification.html",
       "destination": "/zoho-domain-verification.html"

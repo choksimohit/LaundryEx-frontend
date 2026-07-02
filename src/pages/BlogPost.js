@@ -31,6 +31,7 @@ export const BlogPost = () => {
   const pageTitle = `${post.title} | Laundry Express`;
   const pageDescription = post.meta_description || post.excerpt || '';
   const pageUrl = `${SITE_URL}/blog/${post.slug}`;
+  const authorName = post.author === 'Admin' ? 'Laundry Express Team' : post.author;
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -40,7 +41,7 @@ export const BlogPost = () => {
     url: pageUrl,
     datePublished: post.created_at,
     dateModified: post.updated_at || post.created_at,
-    author: { '@type': 'Person', name: post.author },
+    author: { '@type': 'Person', name: authorName },
     publisher: { '@type': 'Organization', name: 'Laundry Express', url: SITE_URL },
     ...(post.cover_image_url && { image: post.cover_image_url }),
   };
@@ -78,7 +79,7 @@ export const BlogPost = () => {
             </span>
             <span className="flex items-center gap-1.5">
               <User className="h-3.5 w-3.5" />
-              {post.author}
+              {authorName}
             </span>
           </div>
 

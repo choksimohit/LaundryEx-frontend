@@ -19,7 +19,7 @@ const PAGE_META = {
     description: 'Premium laundry and dry cleaning service in Colchester with free collection and delivery. Wash, dry, iron and fold from your door.',
   },
   '/services': {
-    title: 'Our Services | Wash, Dry, Iron & Dry Cleaning — Laundry Express Colchester',
+    title: 'Laundry Services Colchester | Wash, Dry, Iron & Dry Cleaning',
     description: 'Laundry Express offers wash & fold, ironing, and dry cleaning with free doorstep collection and delivery across Colchester and surrounding areas.',
   },
   '/order': {
@@ -72,11 +72,14 @@ export const Seo = () => {
   return (
     <>
       <link rel="canonical" href={path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`} />
-      {noindex && <meta name="robots" content="noindex" />}
+      {noindex && <meta name="robots" content="noindex, nofollow" />}
       {meta && !isBlogPost && (
         <>
           <title>{meta.title}</title>
           <meta name="description" content={meta.description} />
+          <meta property="og:title" content={meta.title} />
+          <meta property="og:description" content={meta.description} />
+          <meta property="og:url" content={path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`} />
         </>
       )}
     </>
