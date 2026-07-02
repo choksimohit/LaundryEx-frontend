@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 
 const SITE_URL = 'https://www.laundry-express.co.uk';
+const OG_IMAGE = 'https://www.laundry-express.co.uk/hero-laundry.webp';
 
 const NOINDEX_PATHS = [
   '/cart',
@@ -69,9 +70,17 @@ export const Seo = () => {
 
   const meta = PAGE_META[path];
 
+  const canonicalUrl = path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`;
+
   return (
     <>
-      <link rel="canonical" href={path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`} />
+      <link rel="canonical" href={canonicalUrl} />
+      {/* Global OG tags — single source of truth (static index.html OG tags removed) */}
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="Laundry Express" />
+      <meta property="og:image" content={OG_IMAGE} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:image" content={OG_IMAGE} />
       {noindex && <meta name="robots" content="noindex, nofollow" />}
       {meta && !isBlogPost && (
         <>
@@ -79,7 +88,9 @@ export const Seo = () => {
           <meta name="description" content={meta.description} />
           <meta property="og:title" content={meta.title} />
           <meta property="og:description" content={meta.description} />
-          <meta property="og:url" content={path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`} />
+          <meta property="og:url" content={canonicalUrl} />
+          <meta name="twitter:title" content={meta.title} />
+          <meta name="twitter:description" content={meta.description} />
         </>
       )}
     </>
