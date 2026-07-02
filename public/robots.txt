@@ -5,4 +5,4 @@ Disallow: /cart
 Disallow: /checkout
 Disallow: /order-confirmation/
 
-Sitemap: https://laundry-express.co.uk/sitemap.xml
+Sitemap: https://www.laundry-express.co.uk/sitemap.xml

@@ -66,6 +66,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/contact" className="hover:text-yellow-400 transition-colors flex items-center gap-2 text-sm md:text-base">
+                  <span className="text-yellow-400">→</span> Contact
+                </Link>
+              </li>
+              <li>
                 <Link to="/sitemap" className="hover:text-yellow-400 transition-colors flex items-center gap-2 text-sm md:text-base">
                   <span className="text-yellow-400">→</span> Sitemap
                 </Link>
@@ -110,6 +115,11 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-xs md:text-sm text-center md:text-left space-y-1">
               <p>© 2025 Laundry Express. All rights reserved.</p>
+              <div className="flex flex-wrap gap-3 text-blue-300">
+                <Link to="/terms" className="hover:text-yellow-400 transition-colors">Terms &amp; Conditions</Link>
+                <span>·</span>
+                <Link to="/privacy" className="hover:text-yellow-400 transition-colors">Privacy Policy</Link>
+              </div>
               <p className="text-blue-300">
                 Designed & Developed by{' '}
                 <a href="https://www.techgynt.com" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:text-yellow-300 transition-colors">

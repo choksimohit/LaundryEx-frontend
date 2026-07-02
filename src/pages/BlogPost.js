@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Calendar, User, ArrowLeft } from 'lucide-react';
 import api from '../utils/api';
 
+const SITE_URL = 'https://www.laundry-express.co.uk';
+
 export const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -11,19 +13,9 @@ export const BlogPost = () => {
 
   useEffect(() => {
     api.get(`/blog/${slug}`)
-      .then(res => {
-        setPost(res.data);
-        // Set page title and meta description for SEO
-        document.title = `${res.data.title} | Laundry Express`;
-        const meta = document.querySelector('meta[name="description"]');
-        if (meta) meta.setAttribute('content', res.data.meta_description || res.data.excerpt || '');
-      })
+      .then(res => setPost(res.data))
       .catch(() => navigate('/blog'))
       .finally(() => setLoading(false));
-
-    return () => {
-      document.title = 'Laundry Express';
-    };
   }, [slug, navigate]);
 
   if (loading) {
@@ -36,8 +28,35 @@ export const BlogPost = () => {
 
   if (!post) return null;
 
+  const pageTitle = `${post.title} | Laundry Express`;
+  const pageDescription = post.meta_description || post.excerpt || '';
+  const pageUrl = `${SITE_URL}/blog/${post.slug}`;
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: pageDescription,
+    url: pageUrl,
+    datePublished: post.created_at,
+    dateModified: post.updated_at || post.created_at,
+    author: { '@type': 'Person', name: post.author },
+    publisher: { '@type': 'Organization', name: 'Laundry Express', url: SITE_URL },
+    ...(post.cover_image_url && { image: post.cover_image_url }),
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* React 19 head hoisting */}
+      <title>{pageTitle}</title>
+      <meta name="description" content={pageDescription} />
+      <meta property="og:title" content={pageTitle} />
+      <meta property="og:description" content={pageDescription} />
+      <meta property="og:url" content={pageUrl} />
+      <meta property="og:type" content="article" />
+      {post.cover_image_url && <meta property="og:image" content={post.cover_image_url} />}
+      <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+
       {post.cover_image_url && (
         <div className="w-full h-72 md:h-96 overflow-hidden">
           <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover" />
