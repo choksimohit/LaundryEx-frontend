@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 
-const SITE_URL = 'https://laundry-express.co.uk';
+const SITE_URL = 'https://www.laundry-express.co.uk';
 
 // Private/transactional pages that should never appear in search results
 const NOINDEX_PATHS = [
