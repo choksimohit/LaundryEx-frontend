@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
@@ -72,13 +72,27 @@ export const Services = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Laundry & Dry Cleaning Services in Colchester</h1>
           <p className="text-base md:text-lg lg:text-xl text-blue-100 max-w-3xl">
-            Premium laundry and dry cleaning services in Colchester. Choose from our range of professional services tailored to your needs.
+            Premium laundry and dry cleaning services in Colchester with free doorstep collection and delivery. Professional care for every garment.
+          </p>
+        </div>
+      </div>
+
+      {/* Intro Text */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-4">
+        <div className="max-w-4xl">
+          <h2 className="text-2xl font-bold text-slate-800 mb-4">Colchester's Trusted Laundry & Dry Cleaning Service</h2>
+          <p className="text-slate-600 leading-relaxed mb-4">
+            Laundry Express is Colchester's doorstep laundry and dry cleaning service, serving homes and businesses across CO1, CO2, CO3, CO4, CO6, CO7 and surrounding areas. Whether you need a regular wash and fold, professional ironing, specialist dry cleaning, or household item cleaning, we handle it all — collected and delivered directly to your door.
+          </p>
+          <p className="text-slate-600 leading-relaxed">
+            We use eco-friendly, skin-safe detergents and treat every garment according to its care label. Delicate fabrics, formal wear, duvets, and everyday essentials all receive the same professional attention. Our aim is simple: give your clothes back cleaner, fresher, and better cared for than if you'd done them yourself — saving you time every single week.
           </p>
         </div>
       </div>
 
       {/* Services Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <h2 className="text-2xl font-bold text-slate-800 mb-8">Our Services</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
             <div
@@ -112,21 +126,84 @@ export const Services = () => {
                   </div>
                 </div>
                 
-                <Button
-                  onClick={() => navigate('/order')}  
-                  className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg h-12 font-semibold"
-                  data-testid={`order-${service.id}`}
-                >
-                  Order Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+                <div className="flex gap-2">
+                  <Link
+                    to={`/services/${service.id}`}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg h-12 font-semibold border border-blue-600 text-blue-600 hover:bg-blue-50 transition-colors text-sm"
+                  >
+                    Learn more
+                  </Link>
+                  <Button
+                    onClick={() => navigate('/order')}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-lg h-12 font-semibold"
+                    data-testid={`order-${service.id}`}
+                  >
+                    Book now
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* How It Works */}
+        <div className="mt-16 bg-blue-600 rounded-2xl p-10 text-white">
+          <h2 className="text-2xl font-bold mb-8 text-center">How Our Collection Service Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              { step: '1', title: 'Book Online', text: 'Choose your service and select a collection slot that suits you — morning, afternoon, or evening.' },
+              { step: '2', title: 'We Collect', text: 'Our driver comes to your door at the agreed time. No need to go anywhere — just hand over your laundry bag.' },
+              { step: '3', title: 'We Clean', text: 'Your clothes are professionally laundered, dried, folded, or ironed at our Colchester facility, sorted by garment type.' },
+              { step: '4', title: 'We Deliver', text: 'Clean, fresh laundry is delivered back to your door — usually within 24–48 hours, packed neatly and ready to put away.' },
+            ].map(({ step, title, text }) => (
+              <div key={step} className="text-center">
+                <div className="bg-white text-blue-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">{step}</div>
+                <h3 className="font-semibold text-lg mb-2">{title}</h3>
+                <p className="text-blue-100 text-sm leading-relaxed">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Turnaround Times */}
+        <div className="mt-12 bg-white rounded-2xl p-10 shadow-lg">
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Turnaround Times</h2>
+          <p className="text-slate-600 mb-6">We offer standard and express turnaround options across all services.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { service: 'Wash & Fold / Wash & Iron', standard: '24–48 hours', express: 'Same day (order before 9am)' },
+              { service: 'Dry Cleaning', standard: '48–72 hours', express: '24 hours (on request)' },
+              { service: 'Household Items (duvets, curtains)', standard: '48–72 hours', express: 'Contact us to confirm' },
+            ].map(({ service, standard, express }) => (
+              <div key={service} className="border border-slate-100 rounded-xl p-5">
+                <h3 className="font-semibold text-slate-800 mb-3">{service}</h3>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-slate-500">Standard</span>
+                  <span className="text-slate-700 font-medium">{standard}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Express</span>
+                  <span className="text-blue-600 font-medium">{express}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Service Area */}
+        <div className="mt-12 bg-slate-100 rounded-2xl p-10">
+          <h2 className="text-2xl font-bold text-slate-800 mb-3">Our Service Area</h2>
+          <p className="text-slate-600 leading-relaxed mb-3">
+            Laundry Express collects and delivers across Colchester and the surrounding area. We currently cover postcodes CO1, CO2, CO3, CO4, CO6, and CO7, including central Colchester, Lexden, Wivenhoe, Tiptree, and nearby villages.
+          </p>
+          <p className="text-slate-600 leading-relaxed">
+            Not sure if we cover your postcode? Enter it on our <a href="/order" className="text-blue-600 underline hover:text-blue-700">order page</a> to check instantly. We're continually expanding — if you're just outside our current zone, get in touch and we'll do our best to accommodate you.
+          </p>
+        </div>
+
         {/* Why Choose Us Section */}
-        <div className="mt-20 bg-white rounded-2xl p-12 shadow-lg">
+        <div className="mt-12 bg-white rounded-2xl p-12 shadow-lg">
           <h2 className="text-3xl font-bold text-center mb-12">Why Choose Laundry Express?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
@@ -135,10 +212,10 @@ export const Services = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Fast Service</h3>
-              <p className="text-slate-600">Same-day and express services available for urgent needs</p>
+              <h3 className="text-xl font-semibold mb-2">Fast Turnaround</h3>
+              <p className="text-slate-600">Standard 24–48 hour turnaround on laundry. Express same-day service available for orders placed before 9am.</p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,9 +223,9 @@ export const Services = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold mb-2">Quality Guaranteed</h3>
-              <p className="text-slate-600">Professional care with eco-friendly products</p>
+              <p className="text-slate-600">Eco-friendly, skin-safe detergents. Every garment handled according to its care label. 4.7★ rated by our customers.</p>
             </div>
-            
+
             <div className="text-center">
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,7 +233,7 @@ export const Services = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold mb-2">Free Pickup & Delivery</h3>
-              <p className="text-slate-600">Convenient service right to your doorstep</p>
+              <p className="text-slate-600">No extra charge for collection or delivery. We come to your door Monday to Saturday 8am–8pm and Sunday 9am–5pm.</p>
             </div>
           </div>
         </div>

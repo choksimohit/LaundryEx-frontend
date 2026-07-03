@@ -66,6 +66,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/faq" className="hover:text-yellow-400 transition-colors flex items-center gap-2 text-sm md:text-base">
+                  <span className="text-yellow-400">→</span> FAQs
+                </Link>
+              </li>
+              <li>
                 <Link to="/contact" className="hover:text-yellow-400 transition-colors flex items-center gap-2 text-sm md:text-base">
                   <span className="text-yellow-400">→</span> Contact
                 </Link>
@@ -99,11 +104,26 @@ export const Footer = () => {
                   <div className="bg-yellow-400 rounded-full p-1">
                     <MapPin className="h-3 w-3 text-blue-900" />
                   </div>
-                  Service Area:
+                  Areas We Cover:
                 </h4>
-                <p className="text-xs md:text-sm ml-7">
-                  Colchester & Surrounding Areas
-                </p>
+                <ul className="ml-7 space-y-1">
+                  {[
+                    ['Stanway', 'stanway'],
+                    ['Highwoods', 'highwoods'],
+                    ['Lexden', 'lexden'],
+                    ['Shrub End', 'shrub-end'],
+                    ['Mile End', 'mile-end'],
+                    ['Wivenhoe', 'wivenhoe'],
+                    ['West Mersea', 'west-mersea'],
+                    ['Coggeshall', 'coggeshall'],
+                  ].map(([label, slug]) => (
+                    <li key={slug}>
+                      <Link to={`/laundry-collection-${slug}`} className="text-xs md:text-sm text-blue-200 hover:text-yellow-400 transition-colors">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>

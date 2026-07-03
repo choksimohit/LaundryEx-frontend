@@ -25,6 +25,9 @@ const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.N
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const Terms = lazy(() => import('./pages/Terms').then(m => ({ default: m.Terms })));
 const Privacy = lazy(() => import('./pages/Privacy').then(m => ({ default: m.Privacy })));
+const ServiceDetail = lazy(() => import('./pages/ServiceDetail').then(m => ({ default: m.ServiceDetail })));
+const AreaDetail = lazy(() => import('./pages/AreaDetail').then(m => ({ default: m.AreaDetail })));
+const Faq = lazy(() => import('./pages/Faq').then(m => ({ default: m.Faq })));
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const user = getUser();
@@ -74,6 +77,8 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/services/:slug" element={<ServiceDetail />} />
+            <Route path="/laundry-collection-:area" element={<AreaDetail />} />
             <Route path="/order" element={<Products />} />
             <Route path="/cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
             <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
@@ -83,6 +88,7 @@ function App() {
             <Route path="/sitemap" element={<Sitemap />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/faq" element={<Faq />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />

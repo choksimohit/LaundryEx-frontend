@@ -39,6 +39,10 @@ const PAGE_META = {
     title: 'Create Account | Laundry Express',
     description: 'Sign up for Laundry Express and get 20% off your first order with code WELCOME20. Free doorstep collection and delivery in Colchester.',
   },
+  '/faq': {
+    title: 'FAQs | Laundry Express Colchester',
+    description: 'Answers to common questions about our doorstep laundry service — collection areas, turnaround times, pricing, dry cleaning, and more.',
+  },
   '/contact': {
     title: 'Contact Us | Laundry Express Colchester',
     description: 'Get in touch with Laundry Express by phone, email or WhatsApp. We\'re available Mon–Sat 8am–8pm and Sunday 9am–5pm.',
@@ -65,8 +69,11 @@ export const Seo = () => {
     (p) => path === p || path.startsWith(`${p}/`)
   );
 
-  // Blog post pages have their own title/description set in BlogPost.js
+  // These page types manage their own head tags (title, canonical, og:*)
   const isBlogPost = path.startsWith('/blog/');
+  const isServiceDetail = /^\/services\/.+/.test(path);
+  const isAreaPage = /^\/laundry-collection-.+/.test(path);
+  const isPageOwned = isBlogPost || isServiceDetail || isAreaPage;
 
   const meta = PAGE_META[path];
 
@@ -74,23 +81,23 @@ export const Seo = () => {
 
   return (
     <>
-      <link rel="canonical" href={canonicalUrl} />
-      {/* Global OG tags — single source of truth (static index.html OG tags removed) */}
+      {!isPageOwned && <link rel="canonical" href={canonicalUrl} />}
+      {/* Global OG tags */}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Laundry Express" />
-      <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:image" content={OG_IMAGE} />
       {noindex && <meta name="robots" content="noindex, nofollow" />}
-      {meta && !isBlogPost && (
+      {meta && !isPageOwned && (
         <>
           <title>{meta.title}</title>
           <meta name="description" content={meta.description} />
           <meta property="og:title" content={meta.title} />
           <meta property="og:description" content={meta.description} />
           <meta property="og:url" content={canonicalUrl} />
+          <meta property="og:image" content={OG_IMAGE} />
           <meta name="twitter:title" content={meta.title} />
           <meta name="twitter:description" content={meta.description} />
+          <meta name="twitter:image" content={OG_IMAGE} />
         </>
       )}
     </>
