@@ -78,7 +78,14 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/services" element={<Services />} />
             <Route path="/services/:slug" element={<ServiceDetail />} />
-            <Route path="/laundry-collection-:area" element={<AreaDetail />} />
+            <Route path="/laundry-collection-stanway" element={<AreaDetail />} />
+            <Route path="/laundry-collection-highwoods" element={<AreaDetail />} />
+            <Route path="/laundry-collection-wivenhoe" element={<AreaDetail />} />
+            <Route path="/laundry-collection-west-mersea" element={<AreaDetail />} />
+            <Route path="/laundry-collection-shrub-end" element={<AreaDetail />} />
+            <Route path="/laundry-collection-mile-end" element={<AreaDetail />} />
+            <Route path="/laundry-collection-lexden" element={<AreaDetail />} />
+            <Route path="/laundry-collection-coggeshall" element={<AreaDetail />} />
             <Route path="/order" element={<Products />} />
             <Route path="/cart" element={<PrivateRoute><Cart /></PrivateRoute>} />
             <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />

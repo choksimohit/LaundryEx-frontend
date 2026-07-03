@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, MapPin, Clock, CheckCircle, Star, Search } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -165,8 +165,9 @@ const SERVICES_LIST = [
 ];
 
 export const AreaDetail = () => {
-  const { area: areaSlug } = useParams();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
+  const areaSlug = pathname.replace('/laundry-collection-', '');
   const area = AREAS[areaSlug];
 
   const [postcode, setPostcode] = useState('');
