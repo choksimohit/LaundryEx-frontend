@@ -50,6 +50,7 @@ export const BlogPost = () => {
     <div className="min-h-screen bg-slate-50">
       {/* React 19 head hoisting */}
       <title>{pageTitle}</title>
+      <link rel="canonical" href={pageUrl} />
       <meta name="description" content={pageDescription} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
@@ -85,7 +86,7 @@ export const BlogPost = () => {
 
           <div
             className="prose prose-slate max-w-none prose-headings:text-slate-800 prose-p:text-slate-600 prose-p:leading-relaxed prose-a:text-blue-600 prose-strong:text-slate-800 prose-ul:text-slate-600 prose-ol:text-slate-600 prose-blockquote:border-blue-400 prose-blockquote:text-slate-500 prose-code:text-blue-600 prose-code:bg-blue-50 prose-code:px-1 prose-code:rounded"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: post.content.replace(/<h1(\s[^>]*)?>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>') }}
           />
         </article>
 

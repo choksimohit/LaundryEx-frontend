@@ -114,6 +114,18 @@ const FAQS = [
   },
 ];
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.flatMap(section =>
+    section.items.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    }))
+  ),
+};
+
 export const Faq = () => {
   const [open, setOpen] = useState({});
 
@@ -124,6 +136,7 @@ export const Faq = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       {/* Hero */}
       <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

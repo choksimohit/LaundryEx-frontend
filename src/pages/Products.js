@@ -174,6 +174,7 @@ export const Products = () => {
   return (
     <div className="min-h-screen bg-slate-50" data-testid="products-page">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="sr-only">Book a Laundry Collection in Colchester</h1>
         {/* Postcode Checker Section */}
         {!hasValidPinCode ? (
           <div className="bg-white rounded-2xl p-8 shadow-lg mb-8 max-w-2xl mx-auto" data-testid="pincode-checker-section">
