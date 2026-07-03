@@ -8,7 +8,7 @@ const SITE_URL = 'https://www.laundry-express.co.uk';
 const SERVICES = {
   'laundry': {
     title: 'Laundry Service Colchester',
-    metaTitle: 'Laundry Service Colchester | Wash & Fold Collection — Laundry Express',
+    metaTitle: 'Laundry Service Colchester | Wash, Dry & Fold',
     metaDescription: 'Professional wash and fold laundry service in Colchester with free doorstep collection. Eco-friendly detergents, 24–48 hour turnaround. Book online.',
     image: 'https://images.unsplash.com/photo-1586284359445-2e1d8db7f4cd?crop=entropy&cs=srgb&fm=jpg&q=85',
     tagline: 'Professional wash, dry & fold with free collection from your door',
@@ -36,7 +36,7 @@ const SERVICES = {
   },
   'dry-cleaning': {
     title: 'Dry Cleaning Colchester',
-    metaTitle: 'Dry Cleaning Colchester | Suits, Dresses & Delicate Fabrics — Laundry Express',
+    metaTitle: 'Dry Cleaning Colchester | Suits & Delicate Fabrics',
     metaDescription: 'Expert dry cleaning in Colchester for suits, dresses, coats and delicate garments. Free doorstep collection and delivery. 48–72 hour turnaround.',
     image: 'https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
     tagline: 'Expert care for suits, formal wear, and delicate fabrics',
@@ -66,7 +66,7 @@ const SERVICES = {
   },
   'wash-iron': {
     title: 'Wash & Iron Service Colchester',
-    metaTitle: 'Wash & Iron Service Colchester | Clean & Pressed Collection — Laundry Express',
+    metaTitle: 'Wash & Iron Service Colchester | Clean & Pressed',
     metaDescription: 'Wash and iron service in Colchester — we collect, wash, dry and professionally iron your clothes. Free doorstep pickup. Ready to wear in 24–48 hours.',
     image: 'https://images.unsplash.com/photo-1758279744970-b32360a5e907?crop=entropy&cs=srgb&fm=jpg&q=85',
     tagline: 'Washed, dried, and professionally ironed — returned ready to wear',
@@ -92,7 +92,7 @@ const SERVICES = {
   },
   'ironing': {
     title: 'Ironing Service Colchester',
-    metaTitle: 'Ironing Service Colchester | Doorstep Collection & Delivery — Laundry Express',
+    metaTitle: 'Ironing Service Colchester | Doorstep Collection',
     metaDescription: 'Professional ironing service in Colchester. We collect your clothes, iron them to a crisp finish, and deliver back to your door. Book online today.',
     image: 'https://images.unsplash.com/photo-1740684589228-54b6fba08985?crop=entropy&cs=srgb&fm=jpg&q=85',
     tagline: 'Crisp, wrinkle-free results for shirts, trousers and everyday wear',
@@ -120,7 +120,7 @@ const SERVICES = {
   },
   'household': {
     title: 'Household Laundry Colchester',
-    metaTitle: 'Duvet & Household Laundry Colchester | Bedding & Curtain Cleaning — Laundry Express',
+    metaTitle: 'Household Laundry Colchester | Duvets & Bedding',
     metaDescription: 'Professional household laundry in Colchester — duvets, curtains, bedding, and towels cleaned and returned to your door. Free collection. Book online.',
     image: 'https://images.unsplash.com/photo-1614045963521-189262b3c60b?crop=entropy&cs=srgb&fm=jpg&q=85',
     tagline: 'Duvets, bedding, curtains and towels — cleaned and returned fresh',
@@ -149,7 +149,7 @@ const SERVICES = {
   },
   'alteration-repairs': {
     title: 'Clothing Alterations & Repairs Colchester',
-    metaTitle: 'Clothing Alterations & Repairs Colchester | Hemming & Resizing — Laundry Express',
+    metaTitle: 'Clothing Alterations Colchester | Hemming & Repairs',
     metaDescription: 'Expert clothing alterations and repairs in Colchester — hemming, resizing, zip replacement and more. Collected and delivered from your door.',
     image: 'https://images.pexels.com/photos/4614223/pexels-photo-4614223.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
     tagline: 'Expert tailoring for alterations and repairs, collected from your door',
@@ -177,7 +177,7 @@ const SERVICES = {
   },
   'shoe-cleaning': {
     title: 'Shoe Cleaning Colchester',
-    metaTitle: 'Shoe Cleaning Colchester | Trainer & Leather Shoe Care — Laundry Express',
+    metaTitle: 'Shoe Cleaning Colchester | Trainers & Leather',
     metaDescription: 'Professional shoe cleaning in Colchester for trainers, leather shoes and suede footwear. Deep clean, deodorising and polish. Free doorstep collection.',
     image: 'https://images.unsplash.com/photo-1626964613814-945c5c13dbd1?crop=entropy&cs=srgb&fm=jpg&q=85',
     tagline: 'Deep clean, deodorise and restore your trainers, leather and suede',
@@ -231,6 +231,38 @@ export const ServiceDetail = () => {
       <meta name="twitter:title" content={service.metaTitle} />
       <meta name="twitter:description" content={service.metaDescription} />
       <meta name="twitter:image" content={service.image} />
+      <script type="application/ld+json">{JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL + '/' },
+          { '@type': 'ListItem', position: 2, name: 'Services', item: SITE_URL + '/services' },
+          { '@type': 'ListItem', position: 3, name: service.title, item: pageUrl },
+        ],
+      })}</script>
+      <script type="application/ld+json">{JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: service.title,
+        description: service.metaDescription,
+        url: pageUrl,
+        image: service.image,
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Laundry Express',
+          url: SITE_URL,
+          telephone: '+447777367076',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Lexden Rd',
+            addressLocality: 'Colchester',
+            postalCode: 'CO3 4BH',
+            addressRegion: 'Essex',
+            addressCountry: 'GB',
+          },
+        },
+        areaServed: { '@type': 'City', name: 'Colchester' },
+      })}</script>
 
       {/* Hero */}
       <div className="relative h-72 md:h-96 overflow-hidden">

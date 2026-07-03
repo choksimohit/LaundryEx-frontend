@@ -25,7 +25,7 @@ const PAGE_META = {
   },
   '/order': {
     title: 'Book a Collection | Doorstep Laundry Colchester — Laundry Express',
-    description: 'Enter your postcode to book a doorstep laundry collection in Colchester. Fast, reliable, and professionally handled. Use code WELCOME20 for 20% off your first order.',
+    description: 'Enter your postcode to book a doorstep laundry collection in Colchester. Fast and reliable. Use code WELCOME20 for 20% off your first order.',
   },
   '/blog': {
     title: 'Laundry Tips & News | Laundry Express Blog',

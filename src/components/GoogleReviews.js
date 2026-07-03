@@ -115,7 +115,7 @@ export const GoogleReviews = () => {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-blue-200 hover:text-white font-medium text-sm transition-colors"
           >
-            <img src="https://www.google.com/favicon.ico" alt="" className="w-4 h-4" />
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
             See all reviews on Google
           </a>
         </div>

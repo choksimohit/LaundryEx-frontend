@@ -12,7 +12,7 @@ const AREAS = {
   stanway: {
     name: 'Stanway',
     postcodes: ['CO3 0', 'CO3 8'],
-    metaTitle: 'Laundry Collection Stanway Colchester | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Stanway | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry and dry cleaning collection in Stanway, Colchester (CO3 0, CO3 8). Free pickup and delivery. Wash, fold, iron and dry cleaning from your door.',
     headline: 'Laundry Collection in Stanway, Colchester',
     tagline: 'Free doorstep laundry and dry cleaning service across CO3 0 and CO3 8',
@@ -30,7 +30,7 @@ const AREAS = {
   highwoods: {
     name: 'Highwoods',
     postcodes: ['CO4 9'],
-    metaTitle: 'Laundry Collection Highwoods Colchester | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Highwoods | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry and dry cleaning in Highwoods, Colchester (CO4 9). Free collection and delivery. Professional wash, iron and dry clean from your door.',
     headline: 'Laundry Collection in Highwoods, Colchester',
     tagline: 'Serving north Colchester\'s largest residential area across CO4 9',
@@ -48,7 +48,7 @@ const AREAS = {
   wivenhoe: {
     name: 'Wivenhoe',
     postcodes: ['CO7 9'],
-    metaTitle: 'Laundry Collection Wivenhoe | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Wivenhoe | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry collection and delivery in Wivenhoe (CO7 9). Serving students and residents near University of Essex. Wash, iron and dry clean from your door.',
     headline: 'Laundry Collection in Wivenhoe',
     tagline: 'Doorstep laundry service for Wivenhoe residents and University of Essex students',
@@ -66,7 +66,7 @@ const AREAS = {
   'west-mersea': {
     name: 'West Mersea',
     postcodes: ['CO5 7'],
-    metaTitle: 'Laundry Collection West Mersea | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection West Mersea | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry and dry cleaning collection in West Mersea (CO5 7). The only collection laundry service on Mersea Island. Free pickup and delivery.',
     headline: 'Laundry Collection in West Mersea',
     tagline: 'The only doorstep laundry collection service on Mersea Island — CO5 7',
@@ -84,7 +84,7 @@ const AREAS = {
   'shrub-end': {
     name: 'Shrub End',
     postcodes: ['CO2 7', 'CO2 8', 'CO2 9'],
-    metaTitle: 'Laundry Collection Shrub End Colchester | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Shrub End | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry collection and delivery in Shrub End, Colchester (CO2 7, CO2 8, CO2 9). Wash, iron, dry cleaning and more. Free collection from your door.',
     headline: 'Laundry Collection in Shrub End, Colchester',
     tagline: 'Serving south Colchester residential streets across CO2 7, CO2 8 and CO2 9',
@@ -102,7 +102,7 @@ const AREAS = {
   'mile-end': {
     name: 'Mile End',
     postcodes: ['CO4 5'],
-    metaTitle: 'Laundry Collection Mile End Colchester | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Mile End | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry and dry cleaning collection in Mile End, Colchester (CO4 5). Free pickup and delivery. Professional laundry service from your door.',
     headline: 'Laundry Collection in Mile End, Colchester',
     tagline: 'Doorstep laundry service across the CO4 5 postcode area',
@@ -120,7 +120,7 @@ const AREAS = {
   lexden: {
     name: 'Lexden',
     postcodes: ['CO3 3', 'CO3 4'],
-    metaTitle: 'Laundry Collection Lexden Colchester | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Lexden | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry and dry cleaning in Lexden, Colchester (CO3 3, CO3 4). Local laundry service based on Lexden Road. Free collection and delivery.',
     headline: 'Laundry Collection in Lexden, Colchester',
     tagline: 'Your most local laundry service — based on Lexden Road, covering CO3 3 and CO3 4',
@@ -138,7 +138,7 @@ const AREAS = {
   coggeshall: {
     name: 'Coggeshall',
     postcodes: ['CO6 1'],
-    metaTitle: 'Laundry Collection Coggeshall | Free Pickup & Delivery — Laundry Express',
+    metaTitle: 'Laundry Collection Coggeshall | Free Pickup & Delivery',
     metaDescription: 'Doorstep laundry and dry cleaning collection in Coggeshall (CO6 1). Free pickup and return. Professional wash, iron and dry clean from your home.',
     headline: 'Laundry Collection in Coggeshall',
     tagline: 'Professional doorstep laundry and dry cleaning for Coggeshall — CO6 1',
@@ -216,6 +216,39 @@ export const AreaDetail = () => {
       <meta name="twitter:title" content={area.metaTitle} />
       <meta name="twitter:description" content={area.metaDescription} />
       <meta name="twitter:image" content="https://www.laundry-express.co.uk/hero-laundry.webp" />
+      <script type="application/ld+json">{JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL + '/' },
+          { '@type': 'ListItem', position: 2, name: `Laundry Collection ${area.name}`, item: pageUrl },
+        ],
+      })}</script>
+      <script type="application/ld+json">{JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: `Laundry Collection in ${area.name}`,
+        description: area.metaDescription,
+        url: pageUrl,
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Laundry Express',
+          url: SITE_URL,
+          telephone: '+447777367076',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Lexden Rd',
+            addressLocality: 'Colchester',
+            postalCode: 'CO3 4BH',
+            addressRegion: 'Essex',
+            addressCountry: 'GB',
+          },
+        },
+        areaServed: [
+          { '@type': 'City', name: area.name },
+          ...area.postcodes.map(pc => ({ '@type': 'PostalAddress', postalCode: pc, addressCountry: 'GB' })),
+        ],
+      })}</script>
 
       {/* Hero */}
       <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white py-12 md:py-20">
