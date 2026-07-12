@@ -510,10 +510,11 @@ export const Admin = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="ready_for_pickup">Ready for Pick Up</SelectItem>
+                        <SelectItem value="pickup_completed">Pick Up Completed</SelectItem>
+                        <SelectItem value="ready_to_wash">Ready to Wash</SelectItem>
+                        <SelectItem value="ready_for_drop">Ready for Drop</SelectItem>
+                        <SelectItem value="drop_completed">Drop Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
