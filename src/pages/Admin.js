@@ -492,6 +492,12 @@ export const Admin = () => {
                     <h3 className="text-xl font-semibold mb-2">Order #{order.order_number || order.id.slice(0, 8)}</h3>
                     <p className="text-sm text-slate-600">Customer: {order.user_name}</p>
                     <p className="text-sm text-slate-600">Email: {order.user_email}</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                    </p>
+                    {order.payment_method && (
+                      <p className="text-sm text-slate-500">Payment: <span className="font-medium text-slate-700 capitalize">{order.payment_method}</span></p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-blue-600 mb-2">£{order.total_amount.toFixed(2)}</p>
