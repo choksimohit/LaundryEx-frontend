@@ -281,15 +281,34 @@ export const Admin = () => {
 
   const [manualOrderOpen, setManualOrderOpen] = useState(false);
   const [manualOrderLoading, setManualOrderLoading] = useState(false);
+  const [productList, setProductList] = useState([]);
   const emptyManualOrder = {
     customer_name: '', customer_phone: '', customer_email: '',
     address: '', pin_code: '',
-    pickup_date: '', pickup_time: 'Morning (8am–12pm)',
-    delivery_date: '', delivery_time: 'Morning (8am–12pm)',
+    pickup_date: '', pickup_time: '10:00-12:00',
+    delivery_date: '', delivery_time: '14:00-16:00',
     payment_method: 'cod', customer_note: '',
-    items: [{ product_name: '', quantity: 1, price: '', category: '', subcategory: '' }],
+    items: [{ product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   };
   const [manualOrder, setManualOrder] = useState(emptyManualOrder);
+
+  const openManualOrder = async () => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(deliveryDate.getDate() + 2);
+    const deliveryStr = deliveryDate.toISOString().split('T')[0];
+    setManualOrder(prev => ({ ...prev, pickup_date: todayStr, pickup_time: '10:00-12:00', delivery_date: deliveryStr, delivery_time: '14:00-16:00' }));
+    setManualOrderOpen(true);
+    if (productList.length === 0) {
+      try {
+        const res = await api.get('/products');
+        setProductList(res.data);
+      } catch {
+        toast.error('Failed to load products');
+      }
+    }
+  };
 
   const setManualField = (field, value) => setManualOrder(prev => ({ ...prev, [field]: value }));
 
@@ -299,9 +318,24 @@ export const Admin = () => {
     return { ...prev, items };
   });
 
+  const selectManualProduct = (idx, productName) => {
+    const product = productList.find(p => p.name === productName);
+    setManualOrder(prev => {
+      const items = [...prev.items];
+      items[idx] = {
+        ...items[idx],
+        product_name: productName,
+        unit_price: product ? product.price : 0,
+        category: product ? (product.category || '') : '',
+        subcategory: product ? (product.subcategory || '') : '',
+      };
+      return { ...prev, items };
+    });
+  };
+
   const addManualItem = () => setManualOrder(prev => ({
     ...prev,
-    items: [...prev.items, { product_name: '', quantity: 1, price: '', category: '', subcategory: '' }],
+    items: [...prev.items, { product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   }));
 
   const removeManualItem = (idx) => setManualOrder(prev => ({
@@ -309,22 +343,31 @@ export const Admin = () => {
     items: prev.items.filter((_, i) => i !== idx),
   }));
 
+  const manualOrderTotal = manualOrder.items.reduce((sum, it) => sum + (it.unit_price * (parseInt(it.quantity) || 0)), 0);
+  const manualDeliveryCharge = manualOrderTotal >= 30 ? 0 : 4.45;
+
   const handleCreateManualOrder = async (e) => {
     e.preventDefault();
     if (!manualOrder.customer_name || !manualOrder.customer_phone || !manualOrder.address || !manualOrder.pickup_date || !manualOrder.delivery_date) {
       toast.error('Please fill in all required fields');
       return;
     }
-    const validItems = manualOrder.items.filter(it => it.product_name && it.price && it.quantity > 0);
+    const validItems = manualOrder.items.filter(it => it.product_name && it.unit_price > 0 && it.quantity > 0);
     if (validItems.length === 0) {
-      toast.error('Add at least one item with a name, quantity, and price');
+      toast.error('Add at least one item');
       return;
     }
     setManualOrderLoading(true);
     try {
       const payload = {
         ...manualOrder,
-        items: validItems.map(it => ({ ...it, price: parseFloat(it.price), quantity: parseInt(it.quantity) })),
+        items: validItems.map(it => ({
+          product_name: it.product_name,
+          quantity: parseInt(it.quantity),
+          price: it.unit_price,
+          category: it.category,
+          subcategory: it.subcategory,
+        })),
       };
       const res = await api.post('/admin/orders', payload);
       toast.success(`Order #${res.data.order_number} created — WhatsApp sent to customer`);
@@ -475,7 +518,7 @@ export const Admin = () => {
 
           <TabsContent value="orders" className="space-y-6" data-testid="orders-tab-content">
             <div className="flex justify-end">
-              <Button onClick={() => setManualOrderOpen(true)} className="bg-green-600 hover:bg-green-700 text-white gap-2">
+              <Button onClick={openManualOrder} className="bg-green-600 hover:bg-green-700 text-white gap-2">
                 <Plus className="h-4 w-4" /> Add WhatsApp Order
               </Button>
             </div>
@@ -518,9 +561,12 @@ export const Admin = () => {
                     <div>
                       <Label>Pickup Slot</Label>
                       <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Morning (8am–12pm)</option>
-                        <option>Afternoon (12pm–5pm)</option>
-                        <option>Evening (5pm–8pm)</option>
+                        <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
+                        <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
+                        <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
+                        <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
+                        <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
+                        <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
                       </select>
                     </div>
                     <div>
@@ -530,9 +576,12 @@ export const Admin = () => {
                     <div>
                       <Label>Delivery Slot</Label>
                       <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Morning (8am–12pm)</option>
-                        <option>Afternoon (12pm–5pm)</option>
-                        <option>Evening (5pm–8pm)</option>
+                        <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
+                        <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
+                        <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
+                        <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
+                        <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
+                        <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
                       </select>
                     </div>
                   </div>
@@ -542,12 +591,31 @@ export const Admin = () => {
                     <Label>Items *</Label>
                     <div className="space-y-2 mt-1">
                       {manualOrder.items.map((item, idx) => (
-                        <div key={idx} className="flex gap-2 items-start">
-                          <Input className="flex-[3]" placeholder="Item name" value={item.product_name} onChange={e => setManualItem(idx, 'product_name', e.target.value)} />
-                          <Input className="w-16" type="number" min="1" placeholder="Qty" value={item.quantity} onChange={e => setManualItem(idx, 'quantity', e.target.value)} />
-                          <Input className="w-24" type="number" min="0" step="0.01" placeholder="£ price" value={item.price} onChange={e => setManualItem(idx, 'price', e.target.value)} />
+                        <div key={idx} className="flex gap-2 items-center">
+                          <select
+                            value={item.product_name}
+                            onChange={e => selectManualProduct(idx, e.target.value)}
+                            className="flex-[3] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">— Select item —</option>
+                            {productList.map(p => (
+                              <option key={p.id || p.name} value={p.name}>
+                                {p.name} {p.category ? `(${p.category})` : ''} — £{Number(p.price).toFixed(2)}
+                              </option>
+                            ))}
+                          </select>
+                          <Input
+                            className="w-16"
+                            type="number" min="1"
+                            placeholder="Qty"
+                            value={item.quantity}
+                            onChange={e => setManualItem(idx, 'quantity', e.target.value)}
+                          />
+                          <span className="text-sm text-slate-600 w-20 text-right shrink-0">
+                            £{(item.unit_price * (parseInt(item.quantity) || 0)).toFixed(2)}
+                          </span>
                           {manualOrder.items.length > 1 && (
-                            <button type="button" onClick={() => removeManualItem(idx)} className="text-red-400 hover:text-red-600 text-lg leading-none pt-2">×</button>
+                            <button type="button" onClick={() => removeManualItem(idx)} className="text-red-400 hover:text-red-600 text-lg leading-none">×</button>
                           )}
                         </div>
                       ))}
@@ -560,8 +628,11 @@ export const Admin = () => {
                     <Input value={manualOrder.customer_note} onChange={e => setManualField('customer_note', e.target.value)} placeholder="e.g. leave bag at front door" />
                   </div>
 
-                  <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-600">
-                    Payment: Cash on Delivery — A WhatsApp confirmation will be sent to the customer.
+                  <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700 space-y-1">
+                    <div className="flex justify-between"><span>Items total</span><span>£{manualOrderTotal.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>Delivery</span><span>{manualDeliveryCharge === 0 ? 'Free' : `£${manualDeliveryCharge.toFixed(2)}`}</span></div>
+                    <div className="flex justify-between font-semibold border-t border-slate-200 pt-1 mt-1"><span>Total (COD)</span><span>£{(manualOrderTotal + manualDeliveryCharge).toFixed(2)}</span></div>
+                    <p className="text-xs text-slate-500 pt-1">A WhatsApp confirmation will be sent to the customer on submission.</p>
                   </div>
 
                   <DialogFooter>
