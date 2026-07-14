@@ -348,8 +348,8 @@ export const Admin = () => {
 
   const handleCreateManualOrder = async (e) => {
     e.preventDefault();
-    if (!manualOrder.customer_name || !manualOrder.customer_phone || !manualOrder.address || !manualOrder.pickup_date || !manualOrder.delivery_date) {
-      toast.error('Please fill in all required fields');
+    if (!manualOrder.customer_name || !manualOrder.customer_phone || !manualOrder.customer_email || !manualOrder.address || !manualOrder.pickup_date || !manualOrder.delivery_date) {
+      toast.error('Please fill in all required fields including email');
       return;
     }
     const validItems = manualOrder.items.filter(it => it.product_name && it.unit_price > 0 && it.quantity > 0);
@@ -370,7 +370,8 @@ export const Admin = () => {
         })),
       };
       const res = await api.post('/admin/orders', payload);
-      toast.success(`Order #${res.data.order_number} created — WhatsApp sent to customer`);
+      const accountMsg = res.data.account_created ? ' Account created — password setup link sent via WhatsApp.' : '';
+      toast.success(`Order #${res.data.order_number} created — WhatsApp confirmation sent.${accountMsg}`);
       setManualOrderOpen(false);
       setManualOrder(emptyManualOrder);
       loadOrders();
@@ -540,8 +541,8 @@ export const Admin = () => {
                       <Input value={manualOrder.customer_phone} onChange={e => setManualField('customer_phone', e.target.value)} placeholder="+447911123456" required />
                     </div>
                     <div>
-                      <Label>Email (optional)</Label>
-                      <Input value={manualOrder.customer_email} onChange={e => setManualField('customer_email', e.target.value)} placeholder="customer@email.com" type="email" />
+                      <Label>Email *</Label>
+                      <Input value={manualOrder.customer_email} onChange={e => setManualField('customer_email', e.target.value)} placeholder="customer@email.com" type="email" required />
                     </div>
                     <div>
                       <Label>Postcode *</Label>
