@@ -279,6 +279,65 @@ export const Admin = () => {
     }
   };
 
+  const [manualOrderOpen, setManualOrderOpen] = useState(false);
+  const [manualOrderLoading, setManualOrderLoading] = useState(false);
+  const emptyManualOrder = {
+    customer_name: '', customer_phone: '', customer_email: '',
+    address: '', pin_code: '',
+    pickup_date: '', pickup_time: 'Morning (8am–12pm)',
+    delivery_date: '', delivery_time: 'Morning (8am–12pm)',
+    payment_method: 'cod', customer_note: '',
+    items: [{ product_name: '', quantity: 1, price: '', category: '', subcategory: '' }],
+  };
+  const [manualOrder, setManualOrder] = useState(emptyManualOrder);
+
+  const setManualField = (field, value) => setManualOrder(prev => ({ ...prev, [field]: value }));
+
+  const setManualItem = (idx, field, value) => setManualOrder(prev => {
+    const items = [...prev.items];
+    items[idx] = { ...items[idx], [field]: value };
+    return { ...prev, items };
+  });
+
+  const addManualItem = () => setManualOrder(prev => ({
+    ...prev,
+    items: [...prev.items, { product_name: '', quantity: 1, price: '', category: '', subcategory: '' }],
+  }));
+
+  const removeManualItem = (idx) => setManualOrder(prev => ({
+    ...prev,
+    items: prev.items.filter((_, i) => i !== idx),
+  }));
+
+  const handleCreateManualOrder = async (e) => {
+    e.preventDefault();
+    if (!manualOrder.customer_name || !manualOrder.customer_phone || !manualOrder.address || !manualOrder.pickup_date || !manualOrder.delivery_date) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    const validItems = manualOrder.items.filter(it => it.product_name && it.price && it.quantity > 0);
+    if (validItems.length === 0) {
+      toast.error('Add at least one item with a name, quantity, and price');
+      return;
+    }
+    setManualOrderLoading(true);
+    try {
+      const payload = {
+        ...manualOrder,
+        items: validItems.map(it => ({ ...it, price: parseFloat(it.price), quantity: parseInt(it.quantity) })),
+      };
+      const res = await api.post('/admin/orders', payload);
+      toast.success(`Order #${res.data.order_number} created — WhatsApp sent to customer`);
+      setManualOrderOpen(false);
+      setManualOrder(emptyManualOrder);
+      loadOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to create order');
+    } finally {
+      setManualOrderLoading(false);
+    }
+  };
+
   const handleCategoryDragEnd = async (event) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -415,6 +474,106 @@ export const Admin = () => {
           </TabsList>
 
           <TabsContent value="orders" className="space-y-6" data-testid="orders-tab-content">
+            <div className="flex justify-end">
+              <Button onClick={() => setManualOrderOpen(true)} className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                <Plus className="h-4 w-4" /> Add WhatsApp Order
+              </Button>
+            </div>
+
+            {/* Manual Order Modal */}
+            <Dialog open={manualOrderOpen} onOpenChange={setManualOrderOpen}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create Manual Order (WhatsApp)</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateManualOrder} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Customer Name *</Label>
+                      <Input value={manualOrder.customer_name} onChange={e => setManualField('customer_name', e.target.value)} placeholder="Full name" required />
+                    </div>
+                    <div>
+                      <Label>WhatsApp Phone *</Label>
+                      <Input value={manualOrder.customer_phone} onChange={e => setManualField('customer_phone', e.target.value)} placeholder="+447911123456" required />
+                    </div>
+                    <div>
+                      <Label>Email (optional)</Label>
+                      <Input value={manualOrder.customer_email} onChange={e => setManualField('customer_email', e.target.value)} placeholder="customer@email.com" type="email" />
+                    </div>
+                    <div>
+                      <Label>Postcode *</Label>
+                      <Input value={manualOrder.pin_code} onChange={e => setManualField('pin_code', e.target.value)} placeholder="CO3 3NX" required />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Address *</Label>
+                    <Input value={manualOrder.address} onChange={e => setManualField('address', e.target.value)} placeholder="123 Example Street, Colchester" required />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Pickup Date *</Label>
+                      <Input type="date" value={manualOrder.pickup_date} onChange={e => setManualField('pickup_date', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label>Pickup Slot</Label>
+                      <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Morning (8am–12pm)</option>
+                        <option>Afternoon (12pm–5pm)</option>
+                        <option>Evening (5pm–8pm)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Delivery Date *</Label>
+                      <Input type="date" value={manualOrder.delivery_date} onChange={e => setManualField('delivery_date', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label>Delivery Slot</Label>
+                      <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option>Morning (8am–12pm)</option>
+                        <option>Afternoon (12pm–5pm)</option>
+                        <option>Evening (5pm–8pm)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Items */}
+                  <div>
+                    <Label>Items *</Label>
+                    <div className="space-y-2 mt-1">
+                      {manualOrder.items.map((item, idx) => (
+                        <div key={idx} className="flex gap-2 items-start">
+                          <Input className="flex-[3]" placeholder="Item name" value={item.product_name} onChange={e => setManualItem(idx, 'product_name', e.target.value)} />
+                          <Input className="w-16" type="number" min="1" placeholder="Qty" value={item.quantity} onChange={e => setManualItem(idx, 'quantity', e.target.value)} />
+                          <Input className="w-24" type="number" min="0" step="0.01" placeholder="£ price" value={item.price} onChange={e => setManualItem(idx, 'price', e.target.value)} />
+                          {manualOrder.items.length > 1 && (
+                            <button type="button" onClick={() => removeManualItem(idx)} className="text-red-400 hover:text-red-600 text-lg leading-none pt-2">×</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" onClick={addManualItem} className="mt-2 text-sm text-blue-600 hover:underline">+ Add another item</button>
+                  </div>
+
+                  <div>
+                    <Label>Note (optional)</Label>
+                    <Input value={manualOrder.customer_note} onChange={e => setManualField('customer_note', e.target.value)} placeholder="e.g. leave bag at front door" />
+                  </div>
+
+                  <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-600">
+                    Payment: Cash on Delivery — A WhatsApp confirmation will be sent to the customer.
+                  </div>
+
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setManualOrderOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={manualOrderLoading} className="bg-green-600 hover:bg-green-700 text-white">
+                      {manualOrderLoading ? 'Creating…' : 'Create Order & Notify Customer'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
             {/* Sort & Filter bar */}
             <div className="bg-white rounded-2xl p-4 border border-slate-200 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
               <div className="relative flex-1 min-w-0">
@@ -434,10 +593,11 @@ export const Admin = () => {
               >
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="processing">Processing</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="ready_for_pickup">Ready for Pick Up</option>
+                <option value="pickup_completed">Pick Up Completed</option>
+                <option value="ready_to_wash">Ready to Wash</option>
+                <option value="ready_for_drop">Ready for Drop</option>
+                <option value="drop_completed">Drop Completed</option>
               </select>
               <select
                 value={`${orderSort.key}:${orderSort.dir}`}
@@ -489,9 +649,13 @@ export const Admin = () => {
               <div key={order.id} className="bg-white rounded-2xl p-6 border border-slate-200" data-testid={`admin-order-${order.id}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Order #{order.order_number || order.id.slice(0, 8)}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-semibold">Order #{order.order_number || order.id.slice(0, 8)}</h3>
+                      {order.source === 'manual' && <span className="text-xs bg-green-100 text-green-700 font-medium px-2 py-0.5 rounded-full">WhatsApp</span>}
+                    </div>
                     <p className="text-sm text-slate-600">Customer: {order.user_name}</p>
-                    <p className="text-sm text-slate-600">Email: {order.user_email}</p>
+                    {order.user_email && <p className="text-sm text-slate-600">Email: {order.user_email}</p>}
+                    {order.phone && <p className="text-sm text-slate-600">WhatsApp: {order.phone}</p>}
                     <p className="text-sm text-slate-500 mt-1">
                       Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </p>
