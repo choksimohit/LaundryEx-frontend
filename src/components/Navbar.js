@@ -42,10 +42,10 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm">Follow Us:</span>
-              <a href="#" className="hover:text-blue-200">
+              <a href="https://www.facebook.com/p/Laundry-ExpressColchester-61577569150478/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-200" aria-label="Facebook">
                 <Facebook className="h-4 w-4" />
               </a>
-              <a href="#" className="hover:text-blue-200">
+              <a href="https://www.instagram.com/laundryexpresscolchester/" target="_blank" rel="noopener noreferrer" className="hover:text-blue-200" aria-label="Instagram">
                 <Instagram className="h-4 w-4" />
               </a>
             </div>
