@@ -16,8 +16,31 @@ export const Blog = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-500">Loading articles...</div>
+      <div className="min-h-screen bg-slate-50">
+        <div className="bg-blue-600 text-white py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Laundry Tips & Advice</h1>
+            <p className="text-blue-100 text-lg">Expert guides, care tips and news from Laundry Express</p>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm animate-pulse">
+              <div className="w-full h-56 bg-slate-200" />
+              <div className="p-6 md:p-8">
+                <div className="flex gap-4 mb-3">
+                  <div className="h-3 w-24 bg-slate-200 rounded" />
+                  <div className="h-3 w-20 bg-slate-200 rounded" />
+                </div>
+                <div className="h-6 w-3/4 bg-slate-200 rounded mb-2" />
+                <div className="h-6 w-1/2 bg-slate-200 rounded mb-4" />
+                <div className="h-3 w-full bg-slate-200 rounded mb-2" />
+                <div className="h-3 w-5/6 bg-slate-200 rounded mb-5" />
+                <div className="h-4 w-20 bg-slate-200 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

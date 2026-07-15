@@ -237,6 +237,49 @@ export const Services = () => {
             </div>
           </div>
         </div>
+
+        {/* Pricing from */}
+        <div className="bg-white py-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-slate-800 mb-3">Indicative Pricing</h2>
+              <p className="text-slate-500 max-w-xl mx-auto">Prices shown are starting rates. Enter your postcode on the order page to see exact pricing for your area. Orders over £30 include free collection and delivery.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-blue-50">
+                    <th className="px-5 py-3 text-sm font-semibold text-slate-700 rounded-tl-xl">Service</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-slate-700">Starting from</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-slate-700">Turnaround</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-slate-700 rounded-tr-xl">Book</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {[
+                    { name: 'Wash & Fold', from: '£12.00', time: '24–48 hrs', slug: 'laundry' },
+                    { name: 'Wash & Iron', from: '£15.00', time: '24–48 hrs', slug: 'wash-iron' },
+                    { name: 'Ironing Only', from: '£10.00', time: '24–48 hrs', slug: 'ironing' },
+                    { name: 'Dry Cleaning', from: '£8.50', time: '48–72 hrs', slug: 'dry-cleaning' },
+                    { name: 'Household Items', from: '£14.00', time: '48–72 hrs', slug: 'household' },
+                    { name: 'Shoe Cleaning', from: '£8.00', time: '48–72 hrs', slug: 'shoe-cleaning' },
+                    { name: 'Alterations & Repairs', from: '£5.00', time: 'Quote on inspection', slug: 'alteration-repairs' },
+                  ].map(row => (
+                    <tr key={row.slug} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-4 font-medium text-slate-800">{row.name}</td>
+                      <td className="px-5 py-4 text-blue-600 font-semibold">{row.from}</td>
+                      <td className="px-5 py-4 text-slate-500 text-sm">{row.time}</td>
+                      <td className="px-5 py-4">
+                        <Link to="/order" className="text-sm text-blue-600 font-medium hover:underline">Book →</Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-center text-xs text-slate-400 mt-4">Delivery charge of £4.45 applies to orders under £30.</p>
+          </div>
+        </div>
       </div>
     </div>
   );

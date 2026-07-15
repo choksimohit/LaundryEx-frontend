@@ -11,6 +11,7 @@ export const Landing = () => {
   const [pinCode, setPinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [blogPosts, setBlogPosts] = useState([]);
+  const [notifyState, setNotifyState] = useState({ show: false, email: '', submitting: false, done: false });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,12 +35,24 @@ export const Landing = () => {
         sessionStorage.setItem('businesses', JSON.stringify(response.data.businesses));
         navigate('/order');
       } else {
-        toast.error('Service not available in your area yet');
+        setNotifyState({ show: true, email: '', submitting: false, done: false });
       }
     } catch (error) {
       toast.error('Failed to check availability');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitNotify = async () => {
+    if (!notifyState.email) return;
+    setNotifyState(s => ({ ...s, submitting: true }));
+    try {
+      await api.post('/leads/out-of-area', { email: notifyState.email, postcode: pinCode.toUpperCase() });
+      setNotifyState(s => ({ ...s, submitting: false, done: true }));
+    } catch {
+      toast.error('Failed to save. Please try again.');
+      setNotifyState(s => ({ ...s, submitting: false }));
     }
   };
 
@@ -87,6 +100,36 @@ export const Landing = () => {
                 </Button>
               </div>
             </div>
+
+            {notifyState.show && (
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 shadow-2xl mt-3 max-w-md">
+                {notifyState.done ? (
+                  <p className="text-white text-sm font-medium">✅ Got it! We'll let you know when we reach {pinCode.toUpperCase()}.</p>
+                ) : (
+                  <>
+                    <p className="text-white text-sm font-semibold mb-1">We don't cover {pinCode.toUpperCase()} yet</p>
+                    <p className="text-white/70 text-xs mb-3">Leave your email and we'll notify you when we expand to your area.</p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={notifyState.email}
+                        onChange={e => setNotifyState(s => ({ ...s, email: e.target.value }))}
+                        onKeyPress={e => e.key === 'Enter' && submitNotify()}
+                        className="h-10 bg-white/20 border-white/30 text-white placeholder:text-white/60 text-sm"
+                      />
+                      <Button
+                        onClick={submitNotify}
+                        disabled={notifyState.submitting}
+                        className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm whitespace-nowrap"
+                      >
+                        {notifyState.submitting ? '...' : 'Notify me'}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="mt-5 max-w-md animate-pulse-slow" data-testid="offer-banner">
               <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-lg p-4 shadow-lg border border-emerald-400/40 relative overflow-hidden">
@@ -157,7 +200,7 @@ export const Landing = () => {
         data-testid="whatsapp-button"
       >
         <MessageCircle className="h-6 w-6" />
-        <span className="font-medium">Need Help.?</span>
+        <span className="font-medium">Chat on WhatsApp</span>
       </a>
     </>
   );

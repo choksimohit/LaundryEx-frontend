@@ -344,7 +344,7 @@ const CheckoutForm = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="pin_code">Pin Code</Label>
+                    <Label htmlFor="pin_code">Postcode</Label>
                     <Input
                       id="pin_code"
                       name="pin_code"

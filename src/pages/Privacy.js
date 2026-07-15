@@ -58,7 +58,7 @@ export const Privacy = () => {
             <ul className="list-disc pl-5 space-y-1">
               <li><strong>Stripe</strong> — payment processing</li>
               <li><strong>Resend</strong> — transactional email delivery</li>
-              <li><strong>Twilio</strong> — WhatsApp notifications</li>
+              <li><strong>Meta WhatsApp Cloud API</strong> — WhatsApp notifications</li>
               <li><strong>MongoDB Atlas</strong> — secure cloud database</li>
               <li><strong>Google Analytics / PostHog</strong> — anonymous usage analytics</li>
             </ul>
