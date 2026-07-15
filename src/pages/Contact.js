@@ -7,7 +7,7 @@ import api from '../utils/api';
 import { toast } from 'sonner';
 
 export const Contact = () => {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -21,7 +21,7 @@ export const Contact = () => {
     try {
       await api.post('/contact/enquiry', form);
       setSent(true);
-      setForm({ name: '', email: '', message: '' });
+      setForm({ name: '', email: '', phone: '', message: '' });
       toast.success('Message sent! We\'ll get back to you soon.');
     } catch {
       toast.error('Failed to send message. Please try again or email us directly.');
@@ -140,6 +140,17 @@ export const Contact = () => {
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   className="mt-1"
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact-phone">Phone number <span className="text-slate-400 font-normal">(optional)</span></Label>
+                <Input
+                  id="contact-phone"
+                  type="tel"
+                  placeholder="+44 7700 900000"
+                  value={form.phone}
+                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
               <div>
