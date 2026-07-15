@@ -242,14 +242,14 @@ export const Services = () => {
         <div className="bg-white py-16 px-6">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold text-slate-800 mb-3">Indicative Pricing</h2>
-              <p className="text-slate-500 max-w-xl mx-auto">Prices shown are starting rates. Enter your postcode on the order page to see exact pricing for your area. Orders over £30 include free collection and delivery.</p>
+              <h2 className="text-3xl font-bold text-slate-800 mb-3">Pricing by Service Category</h2>
+              <p className="text-slate-500 max-w-xl mx-auto">Prices below are starting rates by service type. Exact pricing on the order page is per item or per weight — for example, a 6kg Mixed Wash is £15. Enter your postcode to see the full price list. Orders over £30 include free collection and delivery.</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-blue-50">
-                    <th className="px-5 py-3 text-sm font-semibold text-slate-700 rounded-tl-xl">Service</th>
+                    <th className="px-5 py-3 text-sm font-semibold text-slate-700 rounded-tl-xl">Service Category</th>
                     <th className="px-5 py-3 text-sm font-semibold text-slate-700">Starting from</th>
                     <th className="px-5 py-3 text-sm font-semibold text-slate-700">Turnaround</th>
                     <th className="px-5 py-3 text-sm font-semibold text-slate-700 rounded-tr-xl">Book</th>
