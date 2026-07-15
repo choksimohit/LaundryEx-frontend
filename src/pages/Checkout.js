@@ -435,6 +435,12 @@ const CheckoutForm = () => {
                 )}
               </div>
 
+              <div className="flex items-center justify-center gap-6 py-3 text-sm text-slate-500">
+                <span className="flex items-center gap-1.5">🔒 Secure Payment</span>
+                <span className="flex items-center gap-1.5">🌿 Eco-Friendly</span>
+                <span className="flex items-center gap-1.5">✅ DBS-Checked Staff</span>
+              </div>
+
               <Button
                 type="submit"
                 disabled={loading || pickupInClosure || deliveryInClosure}

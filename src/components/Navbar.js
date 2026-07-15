@@ -73,7 +73,7 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
                 HOME
               </Link>
               <Link to="/services" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base" data-testid="services-nav-link">
-                SERVICE
+                Services
               </Link>
               <Link to="/order" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base" data-testid="order-nav-link">
                 ORDER NOW
@@ -167,7 +167,7 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
                   className="text-slate-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  SERVICE
+                  Services
                 </Link>
                 <Link
                   to="/order"

@@ -195,7 +195,7 @@ export const Services = () => {
         <div className="mt-12 bg-slate-100 rounded-2xl p-10">
           <h2 className="text-2xl font-bold text-slate-800 mb-3">Our Service Area</h2>
           <p className="text-slate-600 leading-relaxed mb-3">
-            Laundry Express collects and delivers across Colchester and the surrounding area. We currently cover postcodes CO1, CO2, CO3, CO4, CO6, and CO7, including central Colchester, Lexden, Wivenhoe, Tiptree, and nearby villages.
+            Laundry Express collects and delivers across Colchester and the surrounding area. We currently cover CO1–CO4, CO6, and CO7 postcodes — including Stanway, Highwoods, Lexden, Shrub End, Mile End, Wivenhoe, West Mersea, and Coggeshall.
           </p>
           <p className="text-slate-600 leading-relaxed">
             Not sure if we cover your postcode? Enter it on our <a href="/order" className="text-blue-600 underline hover:text-blue-700">order page</a> to check instantly. We're continually expanding — if you're just outside our current zone, get in touch and we'll do our best to accommodate you.

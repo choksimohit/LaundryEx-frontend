@@ -10,6 +10,9 @@ export const Sitemap = () => {
         { name: 'Home', path: '/' },
         { name: 'Services', path: '/services' },
         { name: 'Order Now', path: '/order' },
+        { name: 'Blog', path: '/blog' },
+        { name: 'FAQs', path: '/faq' },
+        { name: 'Contact', path: '/contact' },
       ],
     },
     {

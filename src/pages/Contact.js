@@ -1,7 +1,35 @@
-import React from 'react';
-import { Phone, Mail, MessageCircle, Clock, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, Mail, MessageCircle, Clock, MapPin, Send } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import api from '../utils/api';
+import { toast } from 'sonner';
 
 export const Contact = () => {
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.message) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.post('/contact/enquiry', form);
+      setSent(true);
+      setForm({ name: '', email: '', message: '' });
+      toast.success('Message sent! We\'ll get back to you soon.');
+    } catch {
+      toast.error('Failed to send message. Please try again or email us directly.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 py-14 px-4">
       <div className="max-w-3xl mx-auto">
@@ -66,6 +94,75 @@ export const Contact = () => {
             <p className="text-sm text-slate-600">Colchester &amp; Surrounding Areas, Essex, UK</p>
             <p className="text-xs text-slate-400 mt-1">Enter your postcode on our homepage to check availability in your area.</p>
           </div>
+        </div>
+
+        <div className="mt-6 bg-white rounded-2xl p-6 border border-slate-200">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-blue-50 rounded-xl p-3 shrink-0">
+              <Send className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800">Send us a message</p>
+              <p className="text-xs text-slate-400">We'll reply to your email within a few hours</p>
+            </div>
+          </div>
+
+          {sent ? (
+            <div className="text-center py-8">
+              <p className="text-2xl mb-2">✅</p>
+              <p className="font-semibold text-slate-800">Message sent!</p>
+              <p className="text-sm text-slate-500 mt-1">We'll get back to you at your email address soon.</p>
+              <button onClick={() => setSent(false)} className="mt-4 text-sm text-blue-600 hover:underline">
+                Send another message
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="contact-name">Your name</Label>
+                <Input
+                  id="contact-name"
+                  type="text"
+                  placeholder="Jane Smith"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact-email">Email address</Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  placeholder="jane@example.com"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact-message">Message</Label>
+                <textarea
+                  id="contact-message"
+                  rows={4}
+                  placeholder="How can we help you?"
+                  value={form.message}
+                  onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {submitting ? 'Sending...' : 'Send Message'}
+              </Button>
+            </form>
+          )}
         </div>
       </div>
     </div>
