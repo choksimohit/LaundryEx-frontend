@@ -70,25 +70,25 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6 lg:gap-8">
               <Link to="/" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base">
-                HOME
+                Home
               </Link>
               <Link to="/services" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base" data-testid="services-nav-link">
                 Services
               </Link>
               <Link to="/order" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base" data-testid="order-nav-link">
-                ORDER NOW
+                Order Now
               </Link>
               <Link to="/blog" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base">
-                BLOG
+                Blog
               </Link>
               {user && user.role === 'customer' && (
                 <Link to="/dashboard" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base">
-                  MY ORDERS
+                  My Orders
                 </Link>
               )}
               {user?.role?.includes('admin') && (
                 <Link to="/admin" className="text-slate-700 hover:text-blue-600 font-medium text-sm lg:text-base" data-testid="admin-nav-link">
-                  ADMIN
+                  Admin
                 </Link>
               )}
             </div>
@@ -160,7 +160,7 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
                   className="text-slate-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  HOME
+                  Home
                 </Link>
                 <Link
                   to="/services"
@@ -174,14 +174,14 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
                   className="text-slate-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  ORDER NOW
+                  Order Now
                 </Link>
                 <Link
                   to="/blog"
                   className="text-slate-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  BLOG
+                  Blog
                 </Link>
                 {user && user.role === 'customer' && (
                   <Link
@@ -189,7 +189,7 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
                     className="text-slate-700 hover:text-blue-600 font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    MY ORDERS
+                    My Orders
                   </Link>
                 )}
                 {user?.role?.includes('admin') && (
@@ -198,7 +198,7 @@ export const Navbar = ({ cartItemsCount = 0 }) => {
                     className="text-slate-700 hover:text-blue-600 font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    ADMIN PANEL
+                    Admin Panel
                   </Link>
                 )}
                 <div className="border-t border-slate-200 pt-3 mt-2">
