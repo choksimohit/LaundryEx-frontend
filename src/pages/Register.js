@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -24,7 +25,6 @@ export const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await api.post('/auth/register', formData);
       setAuth(response.data.token, response.data.user);
@@ -37,6 +37,17 @@ export const Register = () => {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await api.post('/auth/google', { token: credentialResponse.credential });
+      setAuth(response.data.token, response.data.user);
+      toast.success('Account created with Google!');
+      navigate('/services');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Google sign-in failed');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 flex items-center justify-center px-4" data-testid="register-page">
       <div className="w-full max-w-md">
@@ -44,6 +55,27 @@ export const Register = () => {
           <div className="text-center mb-8">
             <h2 className="text-3xl font-semibold mb-2 text-slate-800">Create Account</h2>
             <p className="text-slate-600">Join Laundry Express today</p>
+          </div>
+
+          {/* Google Sign-Up */}
+          <div className="flex justify-center mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error('Google sign-in failed')}
+              width="368"
+              text="signup_with"
+              shape="pill"
+              theme="outline"
+            />
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative flex justify-center text-xs text-slate-400 uppercase tracking-widest">
+              <span className="bg-white px-3">or sign up with email</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

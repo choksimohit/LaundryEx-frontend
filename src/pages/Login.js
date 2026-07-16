@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -13,25 +14,36 @@ export const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const afterLogin = (data) => {
+    setAuth(data.token, data.user);
+    toast.success('Login successful!');
+    if (data.user.role.includes('admin')) {
+      navigate('/admin');
+    } else {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      navigate(cart.length > 0 ? '/cart' : '/services');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await api.post('/auth/login', { email, password });
-      setAuth(response.data.token, response.data.user);
-      toast.success('Login successful!');
-      
-      if (response.data.user.role.includes('admin')) {
-        navigate('/admin');
-      } else {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        navigate(cart.length > 0 ? '/cart' : '/services');
-      }
+      afterLogin(response.data);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Login failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await api.post('/auth/google', { token: credentialResponse.credential });
+      afterLogin(response.data);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Google sign-in failed');
     }
   };
 
@@ -42,6 +54,27 @@ export const Login = () => {
           <div className="text-center mb-8">
             <h2 className="text-3xl font-semibold mb-2 text-slate-800">Welcome Back</h2>
             <p className="text-slate-600">Login to your account</p>
+          </div>
+
+          {/* Google Sign-In */}
+          <div className="flex justify-center mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error('Google sign-in failed')}
+              width="368"
+              text="signin_with"
+              shape="pill"
+              theme="outline"
+            />
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative flex justify-center text-xs text-slate-400 uppercase tracking-widest">
+              <span className="bg-white px-3">or continue with email</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

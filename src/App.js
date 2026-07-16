@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from './components/ui/sonner';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -64,6 +65,7 @@ function App() {
   }, []);
 
   return (
+    <GoogleOAuthProvider clientId="126983041672-42bta7vlk9ta8s3e4hq5000inr2c8ti2.apps.googleusercontent.com">
     <BrowserRouter>
       <Seo />
       <div className="min-h-screen flex flex-col">
@@ -107,6 +109,7 @@ function App() {
         <Toaster position="top-center" />
       </div>
     </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 
