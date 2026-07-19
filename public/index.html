@@ -76,18 +76,32 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://us.i.posthog.com" />
+<link rel="preconnect" href="https://us.i.posthog.com" />
         <link rel="preconnect" href="https://laundry-ex.vercel.app" />
         <link rel="preload" as="image" href="/hero-laundry.webp" fetchpriority="high" />
         <title>Laundry Express | Doorstep Laundry & Dry Cleaning Colchester</title>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XFMNFQ6R2J"></script>
+        <!-- Google tag (gtag.js) — UK visitors only -->
         <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-XFMNFQ6R2J');
+            (function () {
+                fetch('https://ipapi.co/json/')
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data && data.country_code === 'GB') {
+                            var s = document.createElement('script');
+                            s.async = true;
+                            s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XFMNFQ6R2J';
+                            document.head.appendChild(s);
+                            window.dataLayer = window.dataLayer || [];
+                            function gtag() { dataLayer.push(arguments); }
+                            window.gtag = gtag;
+                            gtag('js', new Date());
+                            gtag('config', 'G-XFMNFQ6R2J');
+                        }
+                    })
+                    .catch(function () {
+                        /* silently skip if GeoIP check fails */
+                    });
+            })();
         </script>
         <style>
             /* Hide Emergent badge */
