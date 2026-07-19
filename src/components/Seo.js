@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 
 const SITE_URL = 'https://www.laundry-express.co.uk';
-const OG_IMAGE = 'https://www.laundry-express.co.uk/HeroBanner1.png';
+const OG_IMAGE = 'https://www.laundry-express.co.uk/hero-laundry.webp';
 
 const NOINDEX_PATHS = [
   '/cart',
