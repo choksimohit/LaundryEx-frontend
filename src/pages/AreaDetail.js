@@ -212,10 +212,10 @@ export const AreaDetail = () => {
       <meta property="og:title" content={area.metaTitle} />
       <meta property="og:description" content={area.metaDescription} />
       <meta property="og:url" content={pageUrl} />
-      <meta property="og:image" content="https://www.laundry-express.co.uk/hero-laundry.webp" />
+      <meta property="og:image" content="https://www.laundry-express.co.uk/HeroBanner1.png" />
       <meta name="twitter:title" content={area.metaTitle} />
       <meta name="twitter:description" content={area.metaDescription} />
-      <meta name="twitter:image" content="https://www.laundry-express.co.uk/hero-laundry.webp" />
+      <meta name="twitter:image" content="https://www.laundry-express.co.uk/HeroBanner1.png" />
       <script type="application/ld+json">{JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',

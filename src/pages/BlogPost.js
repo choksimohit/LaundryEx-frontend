@@ -56,7 +56,7 @@ export const BlogPost = () => {
       <meta property="og:description" content={pageDescription} />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:type" content="article" />
-      <meta property="og:image" content={post.cover_image_url || 'https://www.laundry-express.co.uk/hero-laundry.webp'} />
+      <meta property="og:image" content={post.cover_image_url || 'https://www.laundry-express.co.uk/HeroBanner1.png'} />
       <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
 
       {post.cover_image_url && (

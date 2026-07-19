@@ -62,7 +62,7 @@ export const Landing = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(/hero-laundry.webp)',
+            backgroundImage: 'url(/HeroBanner1.png)',
             filter: 'brightness(0.4)'
           }}
         />
