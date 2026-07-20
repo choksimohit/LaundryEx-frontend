@@ -127,7 +127,7 @@ const CheckoutForm = () => {
         ...formData,
         total_amount: grandTotal,
         delivery_charge: deliveryCharge,
-        promo_code: promoApplied ? 'WELCOME10' : '',
+        promo_code: promoApplied ? 'WELCOME20' : '',
         discount_amount: discount,
       };
 

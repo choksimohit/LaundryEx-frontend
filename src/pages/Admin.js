@@ -957,7 +957,7 @@ export const Admin = () => {
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
                         <Tag className="h-5 w-5 text-green-600" />
-                        Send WELCOME10 Offer
+                        Send WELCOME20 Offer
                       </DialogTitle>
                     </DialogHeader>
 
