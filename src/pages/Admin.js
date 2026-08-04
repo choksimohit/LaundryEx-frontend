@@ -281,6 +281,22 @@ export const Admin = () => {
 
   const [manualOrderOpen, setManualOrderOpen] = useState(false);
   const [manualOrderLoading, setManualOrderLoading] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const [paymentLinkSending, setPaymentLinkSending] = useState({});
+
+  const sendPaymentLink = async (orderId) => {
+    setPaymentLinkSending(prev => ({ ...prev, [orderId]: true }));
+    try {
+      await api.post(`/admin/orders/${orderId}/send-payment-link`);
+      toast.success('Payment link emailed to customer');
+      loadOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to send payment link');
+    } finally {
+      setPaymentLinkSending(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
   const [productList, setProductList] = useState([]);
   const emptyManualOrder = {
     customer_name: '', customer_phone: '', customer_email: '',
@@ -299,6 +315,8 @@ export const Admin = () => {
     deliveryDate.setDate(deliveryDate.getDate() + 2);
     const deliveryStr = deliveryDate.toISOString().split('T')[0];
     setManualOrder(prev => ({ ...prev, pickup_date: todayStr, pickup_time: '10:00-12:00', delivery_date: deliveryStr, delivery_time: '14:00-16:00' }));
+    setCustomerSearch('');
+    setCustomerDropdownOpen(false);
     setManualOrderOpen(true);
     if (productList.length === 0) {
       try {
@@ -308,6 +326,20 @@ export const Admin = () => {
         toast.error('Failed to load products');
       }
     }
+    if (!usersLoaded) loadUsers();
+  };
+
+  const selectExistingCustomer = (u) => {
+    setManualOrder(prev => ({
+      ...prev,
+      customer_name: u.name || '',
+      customer_email: u.email || '',
+      customer_phone: u.phone || '',
+      address: u.last_address || '',
+      pin_code: u.last_pin_code || '',
+    }));
+    setCustomerSearch(u.name || u.email);
+    setCustomerDropdownOpen(false);
   };
 
   const setManualField = (field, value) => setManualOrder(prev => ({ ...prev, [field]: value }));
@@ -374,6 +406,8 @@ export const Admin = () => {
       toast.success(`Order #${res.data.order_number} created — WhatsApp confirmation sent.${accountMsg}`);
       setManualOrderOpen(false);
       setManualOrder(emptyManualOrder);
+      setCustomerSearch('');
+      setCustomerDropdownOpen(false);
       loadOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create order');
@@ -528,6 +562,47 @@ export const Admin = () => {
                   <DialogTitle>Create Manual Order (WhatsApp)</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreateManualOrder} className="space-y-4">
+                  {/* Existing customer search */}
+                  <div className="relative">
+                    <Label>Search Existing Customer</Label>
+                    <div className="relative mt-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Type name, email or phone…"
+                        value={customerSearch}
+                        onChange={e => { setCustomerSearch(e.target.value); setCustomerDropdownOpen(true); }}
+                        onFocus={() => setCustomerDropdownOpen(true)}
+                        autoComplete="off"
+                      />
+                    </div>
+                    {customerDropdownOpen && customerSearch.trim().length > 0 && (
+                      <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {users.filter(u => {
+                          const q = customerSearch.toLowerCase();
+                          return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q) || (u.phone || '').includes(q);
+                        }).slice(0, 8).map(u => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-sm border-b border-slate-50 last:border-0"
+                            onClick={() => selectExistingCustomer(u)}
+                          >
+                            <p className="font-medium text-slate-800">{u.name || '—'}</p>
+                            <p className="text-slate-500 text-xs">{u.email}{u.phone ? ` · ${u.phone}` : ''}</p>
+                          </button>
+                        ))}
+                        {users.filter(u => {
+                          const q = customerSearch.toLowerCase();
+                          return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q) || (u.phone || '').includes(q);
+                        }).length === 0 && (
+                          <p className="px-4 py-3 text-sm text-slate-400">No matching customers — fill in details below for a new customer</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>Customer Name *</Label>
@@ -634,7 +709,7 @@ export const Admin = () => {
                   </div>
 
                   <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setManualOrderOpen(false)}>Cancel</Button>
+                    <Button type="button" variant="outline" onClick={() => { setManualOrderOpen(false); setCustomerSearch(''); setCustomerDropdownOpen(false); }}>Cancel</Button>
                     <Button type="submit" disabled={manualOrderLoading} className="bg-green-600 hover:bg-green-700 text-white">
                       {manualOrderLoading ? 'Creating…' : 'Create Order & Notify Customer'}
                     </Button>
@@ -728,9 +803,23 @@ export const Admin = () => {
                     <p className="text-sm text-slate-500 mt-1">
                       Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </p>
-                    {order.payment_method && (
-                      <p className="text-sm text-slate-500">Payment: <span className="font-medium text-slate-700 capitalize">{order.payment_method}</span></p>
-                    )}
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {order.payment_method && (
+                        <p className="text-sm text-slate-500">Payment: <span className="font-medium text-slate-700 capitalize">{order.payment_method}</span></p>
+                      )}
+                      {order.payment_status === 'paid' ? (
+                        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">✓ Paid</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => sendPaymentLink(order.id)}
+                          disabled={!!paymentLinkSending[order.id]}
+                          className="inline-flex items-center gap-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-2.5 py-1 rounded-full border border-blue-200 transition-colors disabled:opacity-50"
+                        >
+                          {paymentLinkSending[order.id] ? 'Sending…' : (order.payment_link_sent_at ? '↩ Resend Payment Link' : '💳 Send Payment Link')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-blue-600 mb-2">£{order.total_amount.toFixed(2)}</p>
