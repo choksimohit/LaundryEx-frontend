@@ -29,6 +29,7 @@ const Privacy = lazy(() => import('./pages/Privacy').then(m => ({ default: m.Pri
 const ServiceDetail = lazy(() => import('./pages/ServiceDetail').then(m => ({ default: m.ServiceDetail })));
 const AreaDetail = lazy(() => import('./pages/AreaDetail').then(m => ({ default: m.AreaDetail })));
 const Faq = lazy(() => import('./pages/Faq').then(m => ({ default: m.Faq })));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess').then(m => ({ default: m.PaymentSuccess })));
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const user = getUser();
@@ -98,6 +99,7 @@ function App() {
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/faq" element={<Faq />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Package, Clock, MapPin, MessageSquare } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import api from '../utils/api';
 import { toast } from 'sonner';
@@ -18,13 +18,9 @@ export const Dashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     loadOrders();
-    if (searchParams.get('paid') === '1') {
-      toast.success('Payment successful! Your order is confirmed. 🎉');
-    }
   }, []);
 
   const loadOrders = async () => {
