@@ -809,14 +809,14 @@ export const Admin = () => {
                       )}
                       {order.payment_status === 'paid' ? (
                         <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">✓ Paid</span>
-                      ) : (
+                      ) : order.payment_link_sent_at && (
                         <button
                           type="button"
                           onClick={() => sendPaymentLink(order.id)}
                           disabled={!!paymentLinkSending[order.id]}
                           className="inline-flex items-center gap-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-2.5 py-1 rounded-full border border-blue-200 transition-colors disabled:opacity-50"
                         >
-                          {paymentLinkSending[order.id] ? 'Sending…' : (order.payment_link_sent_at ? '↩ Resend Payment Link' : '💳 Send Payment Link')}
+                          {paymentLinkSending[order.id] ? 'Sending…' : '↩ Resend Payment Link'}
                         </button>
                       )}
                     </div>
