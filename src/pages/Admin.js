@@ -314,7 +314,7 @@ export const Admin = () => {
     const deliveryDate = new Date(today);
     deliveryDate.setDate(deliveryDate.getDate() + 2);
     const deliveryStr = deliveryDate.toISOString().split('T')[0];
-    setManualOrder(prev => ({ ...prev, pickup_date: todayStr, pickup_time: '10:00-12:00', delivery_date: deliveryStr, delivery_time: '14:00-16:00' }));
+    setManualOrder({ ...emptyManualOrder, pickup_date: todayStr, pickup_time: '10:00-12:00', delivery_date: deliveryStr, delivery_time: '14:00-16:00' });
     setCustomerSearch('');
     setCustomerDropdownOpen(false);
     setManualOrderOpen(true);
@@ -361,6 +361,14 @@ export const Admin = () => {
         category: product ? (product.category || '') : '',
         subcategory: product ? (product.subcategory || '') : '',
       };
+      return { ...prev, items };
+    });
+  };
+
+  const selectManualCategory = (idx, category) => {
+    setManualOrder(prev => {
+      const items = [...prev.items];
+      items[idx] = { ...items[idx], category, product_name: '', unit_price: 0, subcategory: '' };
       return { ...prev, items };
     });
   };
@@ -663,35 +671,51 @@ export const Admin = () => {
                   <div>
                     <Label>Items *</Label>
                     <div className="space-y-2 mt-1">
-                      {manualOrder.items.map((item, idx) => (
-                        <div key={idx} className="flex gap-2 items-center">
-                          <select
-                            value={item.product_name}
-                            onChange={e => selectManualProduct(idx, e.target.value)}
-                            className="flex-[3] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="">— Select item —</option>
-                            {productList.map(p => (
-                              <option key={p.id || p.name} value={p.name}>
-                                {p.name} {p.category ? `(${p.category})` : ''} — £{Number(p.price).toFixed(2)}
-                              </option>
-                            ))}
-                          </select>
-                          <Input
-                            className="w-16"
-                            type="number" min="1"
-                            placeholder="Qty"
-                            value={item.quantity}
-                            onChange={e => setManualItem(idx, 'quantity', e.target.value)}
-                          />
-                          <span className="text-sm text-slate-600 w-20 text-right shrink-0">
-                            £{(item.unit_price * (parseInt(item.quantity) || 0)).toFixed(2)}
-                          </span>
-                          {manualOrder.items.length > 1 && (
-                            <button type="button" onClick={() => removeManualItem(idx)} className="text-red-400 hover:text-red-600 text-lg leading-none">×</button>
-                          )}
-                        </div>
-                      ))}
+                      {manualOrder.items.map((item, idx) => {
+                        const categories = [...new Set(productList.map(p => p.category).filter(Boolean))].sort();
+                        const filteredProducts = item.category
+                          ? productList.filter(p => p.category === item.category)
+                          : productList;
+                        return (
+                          <div key={idx} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                            <select
+                              value={item.category}
+                              onChange={e => selectManualCategory(idx, e.target.value)}
+                              className="flex-1 min-w-[120px] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">— Category —</option>
+                              {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={item.product_name}
+                              onChange={e => selectManualProduct(idx, e.target.value)}
+                              className="flex-[2] min-w-[140px] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">— Select item —</option>
+                              {filteredProducts.map(p => (
+                                <option key={p.id || p.name} value={p.name}>
+                                  {p.name} — £{Number(p.price).toFixed(2)}
+                                </option>
+                              ))}
+                            </select>
+                            <Input
+                              className="w-16 shrink-0"
+                              type="number" min="1"
+                              placeholder="Qty"
+                              value={item.quantity}
+                              onChange={e => setManualItem(idx, 'quantity', e.target.value)}
+                            />
+                            <span className="text-sm text-slate-600 w-20 text-right shrink-0">
+                              £{(item.unit_price * (parseInt(item.quantity) || 0)).toFixed(2)}
+                            </span>
+                            {manualOrder.items.length > 1 && (
+                              <button type="button" onClick={() => removeManualItem(idx)} className="text-red-400 hover:text-red-600 text-lg leading-none shrink-0">×</button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                     <button type="button" onClick={addManualItem} className="mt-2 text-sm text-blue-600 hover:underline">+ Add another item</button>
                   </div>
