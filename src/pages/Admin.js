@@ -565,12 +565,12 @@ export const Admin = () => {
 
             {/* Manual Order Modal */}
             <Dialog open={manualOrderOpen} onOpenChange={setManualOrderOpen}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-5xl w-full max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Create Manual Order (WhatsApp)</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreateManualOrder} className="space-y-4">
-                  {/* Existing customer search */}
+                  {/* Customer search — full width */}
                   <div className="relative">
                     <Label>Search Existing Customer</Label>
                     <div className="relative mt-1">
@@ -591,12 +591,7 @@ export const Admin = () => {
                           const q = customerSearch.toLowerCase();
                           return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q) || (u.phone || '').includes(q);
                         }).slice(0, 8).map(u => (
-                          <button
-                            key={u.id}
-                            type="button"
-                            className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-sm border-b border-slate-50 last:border-0"
-                            onClick={() => selectExistingCustomer(u)}
-                          >
+                          <button key={u.id} type="button" className="w-full text-left px-4 py-2.5 hover:bg-blue-50 text-sm border-b border-slate-50 last:border-0" onClick={() => selectExistingCustomer(u)}>
                             <p className="font-medium text-slate-800">{u.name || '—'}</p>
                             <p className="text-slate-500 text-xs">{u.email}{u.phone ? ` · ${u.phone}` : ''}</p>
                           </button>
@@ -611,59 +606,72 @@ export const Admin = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Customer Name *</Label>
-                      <Input value={manualOrder.customer_name} onChange={e => setManualField('customer_name', e.target.value)} placeholder="Full name" required />
+                  {/* Two-column layout: customer details | schedule */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left — customer details */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Customer Name *</Label>
+                          <Input value={manualOrder.customer_name} onChange={e => setManualField('customer_name', e.target.value)} placeholder="Full name" required />
+                        </div>
+                        <div>
+                          <Label>WhatsApp Phone *</Label>
+                          <Input value={manualOrder.customer_phone} onChange={e => setManualField('customer_phone', e.target.value)} placeholder="+447911123456" required />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Email *</Label>
+                          <Input value={manualOrder.customer_email} onChange={e => setManualField('customer_email', e.target.value)} placeholder="customer@email.com" type="email" required />
+                        </div>
+                        <div>
+                          <Label>Postcode *</Label>
+                          <Input value={manualOrder.pin_code} onChange={e => setManualField('pin_code', e.target.value)} placeholder="CO3 3NX" required />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Address *</Label>
+                        <Input value={manualOrder.address} onChange={e => setManualField('address', e.target.value)} placeholder="123 Example Street, Colchester" required />
+                      </div>
                     </div>
-                    <div>
-                      <Label>WhatsApp Phone *</Label>
-                      <Input value={manualOrder.customer_phone} onChange={e => setManualField('customer_phone', e.target.value)} placeholder="+447911123456" required />
-                    </div>
-                    <div>
-                      <Label>Email *</Label>
-                      <Input value={manualOrder.customer_email} onChange={e => setManualField('customer_email', e.target.value)} placeholder="customer@email.com" type="email" required />
-                    </div>
-                    <div>
-                      <Label>Postcode *</Label>
-                      <Input value={manualOrder.pin_code} onChange={e => setManualField('pin_code', e.target.value)} placeholder="CO3 3NX" required />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Address *</Label>
-                    <Input value={manualOrder.address} onChange={e => setManualField('address', e.target.value)} placeholder="123 Example Street, Colchester" required />
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Pickup Date *</Label>
-                      <Input type="date" value={manualOrder.pickup_date} onChange={e => setManualField('pickup_date', e.target.value)} required />
-                    </div>
-                    <div>
-                      <Label>Pickup Slot</Label>
-                      <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
-                        <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
-                        <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
-                        <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
-                        <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
-                        <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
-                      </select>
-                    </div>
-                    <div>
-                      <Label>Delivery Date *</Label>
-                      <Input type="date" value={manualOrder.delivery_date} onChange={e => setManualField('delivery_date', e.target.value)} required />
-                    </div>
-                    <div>
-                      <Label>Delivery Slot</Label>
-                      <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
-                        <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
-                        <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
-                        <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
-                        <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
-                        <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
-                      </select>
+                    {/* Right — schedule */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Pickup Date *</Label>
+                          <Input type="date" value={manualOrder.pickup_date} onChange={e => setManualField('pickup_date', e.target.value)} required />
+                        </div>
+                        <div>
+                          <Label>Pickup Slot</Label>
+                          <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
+                            <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
+                            <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
+                            <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
+                            <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
+                            <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Delivery Date *</Label>
+                          <Input type="date" value={manualOrder.delivery_date} onChange={e => setManualField('delivery_date', e.target.value)} required />
+                        </div>
+                        <div>
+                          <Label>Delivery Slot</Label>
+                          <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
+                            <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
+                            <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
+                            <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
+                            <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
+                            <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
