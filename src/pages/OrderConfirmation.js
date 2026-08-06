@@ -80,11 +80,11 @@ export const OrderConfirmation = () => {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-slate-600 block mb-1">Pickup</span>
-                <span className="font-medium">{order.pickup_date} at {order.pickup_time}</span>
+                <span className="font-medium">{order.pickup_date ? order.pickup_date.split('-').reverse().join('/') : ''} at {order.pickup_time}</span>
               </div>
               <div>
                 <span className="text-slate-600 block mb-1">Delivery</span>
-                <span className="font-medium">{order.delivery_date} at {order.delivery_time}</span>
+                <span className="font-medium">{order.delivery_date ? order.delivery_date.split('-').reverse().join('/') : ''} at {order.delivery_time}</span>
               </div>
             </div>
           </div>

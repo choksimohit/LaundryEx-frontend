@@ -833,7 +833,7 @@ export const Admin = () => {
                     {order.user_email && <p className="text-sm text-slate-600">Email: {order.user_email}</p>}
                     {order.phone && <p className="text-sm text-slate-600">WhatsApp: {order.phone}</p>}
                     <p className="text-sm text-slate-500 mt-1">
-                      Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                      Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {order.payment_method && (
@@ -911,7 +911,7 @@ export const Admin = () => {
                       <Clock className="h-3.5 w-3.5 text-blue-600" />
                       <span className="text-blue-700 font-medium">Pickup</span>
                     </div>
-                    <span className="block text-slate-800 font-medium">{order.pickup_date} at {order.pickup_time}</span>
+                    <span className="block text-slate-800 font-medium">{order.pickup_date ? order.pickup_date.split('-').reverse().join('/') : ''} at {order.pickup_time}</span>
                     {order.pickup_instruction && (
                       <div className="flex items-start gap-1.5 mt-1.5">
                         <MessageSquare className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
@@ -924,7 +924,7 @@ export const Admin = () => {
                       <Clock className="h-3.5 w-3.5 text-green-600" />
                       <span className="text-green-700 font-medium">Delivery</span>
                     </div>
-                    <span className="block text-slate-800 font-medium">{order.delivery_date} at {order.delivery_time}</span>
+                    <span className="block text-slate-800 font-medium">{order.delivery_date ? order.delivery_date.split('-').reverse().join('/') : ''} at {order.delivery_time}</span>
                     {order.delivery_instruction && (
                       <div className="flex items-start gap-1.5 mt-1.5">
                         <MessageSquare className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
@@ -1240,20 +1240,20 @@ export const Admin = () => {
                       </div>
 
                       <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-slate-50 text-xs text-slate-400">
-                        <span>Joined {new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        <span>Joined {new Date(u.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                         {u.last_order && (
-                          <span>· Last order {new Date(u.last_order).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          <span>· Last order {new Date(u.last_order).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                         )}
                         {u.review_request_sent_at && (
                           <span className="ml-auto flex items-center gap-1 text-amber-500">
                             <Star className="h-3 w-3" />
-                            Review email sent {new Date(u.review_request_sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            Review email sent {new Date(u.review_request_sent_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                           </span>
                         )}
                         {u.welcome_offer_sent_at && (
                           <span className="flex items-center gap-1 text-green-600">
                             <Tag className="h-3 w-3" />
-                            Welcome offer sent {new Date(u.welcome_offer_sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            Welcome offer sent {new Date(u.welcome_offer_sent_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                           </span>
                         )}
                       </div>
@@ -1556,7 +1556,7 @@ export const Admin = () => {
                               {post.status}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-400">{new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                          <p className="text-sm text-slate-400">{new Date(post.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {post.status === 'published' && (
@@ -1708,7 +1708,7 @@ export const Admin = () => {
                                   <span className="text-xs text-blue-600 font-medium">{stats.order_count} order{stats.order_count !== 1 ? 's' : ''}</span>
                                   <span className="text-xs text-green-600 font-medium">£{stats.total_revenue.toFixed(2)} revenue</span>
                                   <span className="text-xs text-red-500 font-medium">-£{stats.total_discount.toFixed(2)} discount</span>
-                                  {stats.last_used && <span className="text-xs text-slate-400">Last used {new Date(stats.last_used).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                                  {stats.last_used && <span className="text-xs text-slate-400">Last used {new Date(stats.last_used).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>}
                                 </>}
                               </div>
                             </div>
@@ -1763,7 +1763,7 @@ export const Admin = () => {
                                   <p className="text-xs text-slate-400 truncate">{o.user_email}</p>
                                 </div>
                                 <span className="text-slate-600 font-mono">#{o.order_number}</span>
-                                <span className="text-slate-500 text-xs">{new Date(o.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                <span className="text-slate-500 text-xs">{new Date(o.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                 <div className="text-right">
                                   <p className="font-semibold text-slate-800">£{o.total_amount.toFixed(2)}</p>
                                   <p className="text-xs text-red-500">-£{o.discount_amount.toFixed(2)}</p>

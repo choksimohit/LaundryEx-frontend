@@ -107,11 +107,7 @@ export const Dashboard = () => {
                     <div>
                       <h3 className="text-xl font-semibold mb-2" data-testid={`order-id-${order.id}`}>Order #{order.order_number || order.id.slice(0, 8)}</h3>
                       <p className="text-sm text-slate-600">
-                        {new Date(order.created_at).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
+                        {new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                       </p>
                     </div>
                     <div>
@@ -183,7 +179,7 @@ export const Dashboard = () => {
                         <Clock className="h-3.5 w-3.5 text-blue-600" />
                         <span className="text-blue-700 font-medium">Pickup</span>
                       </div>
-                      <span className="block text-slate-800 font-medium">{order.pickup_date} at {order.pickup_time}</span>
+                      <span className="block text-slate-800 font-medium">{order.pickup_date ? order.pickup_date.split('-').reverse().join('/') : ''} at {order.pickup_time}</span>
                       {order.pickup_instruction && (
                         <div className="flex items-start gap-1.5 mt-1.5">
                           <MessageSquare className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
@@ -196,7 +192,7 @@ export const Dashboard = () => {
                         <Clock className="h-3.5 w-3.5 text-green-600" />
                         <span className="text-green-700 font-medium">Delivery</span>
                       </div>
-                      <span className="block text-slate-800 font-medium">{order.delivery_date} at {order.delivery_time}</span>
+                      <span className="block text-slate-800 font-medium">{order.delivery_date ? order.delivery_date.split('-').reverse().join('/') : ''} at {order.delivery_time}</span>
                       {order.delivery_instruction && (
                         <div className="flex items-start gap-1.5 mt-1.5">
                           <MessageSquare className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
