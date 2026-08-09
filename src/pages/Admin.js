@@ -16,7 +16,7 @@ import { ProductManagement } from './ProductManagement';
 import api from '../utils/api';
 import { toast } from 'sonner';
 import { getUser } from '../utils/auth';
-import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star, Tag, Percent, ToggleLeft, ToggleRight, Plus } from 'lucide-react';
+import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star, Tag, Percent, ToggleLeft, ToggleRight, Plus, Mail, Phone } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -284,6 +284,9 @@ export const Admin = () => {
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [paymentLinkSending, setPaymentLinkSending] = useState({});
+  const [promoInput, setPromoInput] = useState('');
+  const [promoApplied, setPromoApplied] = useState(null); // { code, discount_percent, description }
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const sendPaymentLink = async (orderId) => {
     setPaymentLinkSending(prev => ({ ...prev, [orderId]: true }));
@@ -317,6 +320,8 @@ export const Admin = () => {
     setManualOrder({ ...emptyManualOrder, pickup_date: todayStr, pickup_time: '10:00-12:00', delivery_date: deliveryStr, delivery_time: '14:00-16:00' });
     setCustomerSearch('');
     setCustomerDropdownOpen(false);
+    setPromoInput('');
+    setPromoApplied(null);
     setManualOrderOpen(true);
     if (productList.length === 0) {
       try {
@@ -384,7 +389,24 @@ export const Admin = () => {
   }));
 
   const manualOrderTotal = manualOrder.items.reduce((sum, it) => sum + (it.unit_price * (parseInt(it.quantity) || 0)), 0);
-  const manualDeliveryCharge = manualOrderTotal >= 30 ? 0 : 4.45;
+  const manualDiscount = promoApplied ? +(manualOrderTotal * promoApplied.discount_percent / 100).toFixed(2) : 0;
+  const manualAfterDiscount = manualOrderTotal - manualDiscount;
+  const manualDeliveryCharge = manualAfterDiscount >= 30 ? 0 : 4.45;
+
+  const applyManualPromo = async () => {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    try {
+      const res = await api.post('/admin/promo/validate', { code: promoInput.trim() });
+      setPromoApplied(res.data);
+      toast.success(`${res.data.code} applied — ${res.data.discount_percent}% off`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Invalid promo code');
+      setPromoApplied(null);
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const handleCreateManualOrder = async (e) => {
     e.preventDefault();
@@ -401,6 +423,7 @@ export const Admin = () => {
     try {
       const payload = {
         ...manualOrder,
+        promo_code: promoApplied ? promoApplied.code : '',
         items: validItems.map(it => ({
           product_name: it.product_name,
           quantity: parseInt(it.quantity),
@@ -416,6 +439,8 @@ export const Admin = () => {
       setManualOrder(emptyManualOrder);
       setCustomerSearch('');
       setCustomerDropdownOpen(false);
+      setPromoInput('');
+      setPromoApplied(null);
       loadOrders();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to create order');
@@ -740,14 +765,38 @@ export const Admin = () => {
                   </div>
 
                   <div>
+                    <Label>Discount Code (optional)</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        value={promoInput}
+                        onChange={e => { setPromoInput(e.target.value.toUpperCase()); if (promoApplied) setPromoApplied(null); }}
+                        placeholder="e.g. WELCOME20"
+                        className="uppercase"
+                        disabled={!!promoApplied}
+                      />
+                      {promoApplied ? (
+                        <button type="button" onClick={() => { setPromoApplied(null); setPromoInput(''); }} className="px-3 py-2 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-lg whitespace-nowrap">Remove</button>
+                      ) : (
+                        <button type="button" onClick={applyManualPromo} disabled={promoLoading || !promoInput.trim()} className="px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg whitespace-nowrap disabled:opacity-50">
+                          {promoLoading ? 'Checking…' : 'Apply'}
+                        </button>
+                      )}
+                    </div>
+                    {promoApplied && <p className="text-xs text-green-600 mt-1">✓ {promoApplied.code} — {promoApplied.discount_percent}% off applied</p>}
+                  </div>
+
+                  <div>
                     <Label>Note (optional)</Label>
                     <Input value={manualOrder.customer_note} onChange={e => setManualField('customer_note', e.target.value)} placeholder="e.g. leave bag at front door" />
                   </div>
 
                   <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700 space-y-1">
                     <div className="flex justify-between"><span>Items total</span><span>£{manualOrderTotal.toFixed(2)}</span></div>
+                    {manualDiscount > 0 && (
+                      <div className="flex justify-between text-green-600"><span>Discount ({promoApplied.code})</span><span>-£{manualDiscount.toFixed(2)}</span></div>
+                    )}
                     <div className="flex justify-between"><span>Delivery</span><span>{manualDeliveryCharge === 0 ? 'Free' : `£${manualDeliveryCharge.toFixed(2)}`}</span></div>
-                    <div className="flex justify-between font-semibold border-t border-slate-200 pt-1 mt-1"><span>Total (COD)</span><span>£{(manualOrderTotal + manualDeliveryCharge).toFixed(2)}</span></div>
+                    <div className="flex justify-between font-semibold border-t border-slate-200 pt-1 mt-1"><span>Total (COD)</span><span>£{(manualAfterDiscount + manualDeliveryCharge).toFixed(2)}</span></div>
                     <p className="text-xs text-slate-500 pt-1">A WhatsApp confirmation will be sent to the customer on submission.</p>
                   </div>
 
@@ -832,120 +881,143 @@ export const Admin = () => {
                   <p className="text-slate-400">No orders match your filters.</p>
                 </div>
               );
-              return sorted.map(order => (
-              <div key={order.id} className="bg-white rounded-2xl p-6 border border-slate-200" data-testid={`admin-order-${order.id}`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-xl font-semibold">Order #{order.order_number || order.id.slice(0, 8)}</h3>
-                      {order.source === 'manual' && <span className="text-xs bg-green-100 text-green-700 font-medium px-2 py-0.5 rounded-full">WhatsApp</span>}
+              const STATUS_META = {
+                pending:           { label: 'Pending',           bar: 'bg-amber-400',   badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
+                ready_for_pickup:  { label: 'Ready for Pickup',  bar: 'bg-blue-400',    badge: 'bg-blue-50 text-blue-700 border border-blue-200' },
+                pickup_completed:  { label: 'Picked Up',         bar: 'bg-blue-600',    badge: 'bg-blue-100 text-blue-800 border border-blue-300' },
+                ready_to_wash:     { label: 'Ready to Wash',     bar: 'bg-violet-400',  badge: 'bg-violet-50 text-violet-700 border border-violet-200' },
+                ready_for_drop:    { label: 'Out for Delivery',  bar: 'bg-orange-400',  badge: 'bg-orange-50 text-orange-700 border border-orange-200' },
+                drop_completed:    { label: 'Delivered',         bar: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+              };
+              return sorted.map(order => {
+                const meta = STATUS_META[order.status] || { label: order.status, bar: 'bg-slate-300', badge: 'bg-slate-50 text-slate-600 border border-slate-200' };
+                return (
+                <div key={order.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200" data-testid={`admin-order-${order.id}`}>
+
+                  {/* Status colour bar */}
+                  <div className={`h-1 w-full ${meta.bar}`} />
+
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 pt-4 pb-3 border-b border-slate-50">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0 select-none">
+                        {(order.user_name || '?')[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-slate-800 text-base">Order #{order.order_number || order.id.slice(0, 8)}</h3>
+                          {order.source === 'manual' && <span className="text-[10px] font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full tracking-wide">WhatsApp</span>}
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${meta.badge}`}>{meta.label}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-slate-600">Customer: {order.user_name}</p>
-                    {order.user_email && <p className="text-sm text-slate-600">Email: {order.user_email}</p>}
-                    <p className="text-sm text-slate-600">Mobile: {order.phone || <span className="text-slate-400 italic">Not provided</span>}</p>
-                    <p className="text-sm text-slate-500 mt-1">
-                      Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {order.payment_method && (
-                        <p className="text-sm text-slate-500">Payment: <span className="font-medium text-slate-700 capitalize">{order.payment_method}</span></p>
-                      )}
+                    <div className="flex sm:flex-col items-center sm:items-end gap-3 shrink-0">
+                      <p className="text-2xl font-bold text-blue-600">£{order.total_amount.toFixed(2)}</p>
+                      <Select value={order.status} onValueChange={(value) => updateOrderStatus(order.id, value)}>
+                        <SelectTrigger className="w-44 h-8 text-xs" data-testid={`status-select-${order.id}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="ready_for_pickup">Ready for Pick Up</SelectItem>
+                          <SelectItem value="pickup_completed">Pick Up Completed</SelectItem>
+                          <SelectItem value="ready_to_wash">Ready to Wash</SelectItem>
+                          <SelectItem value="ready_for_drop">Ready for Drop</SelectItem>
+                          <SelectItem value="drop_completed">Drop Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Customer info grid */}
+                  <div className="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 border-b border-slate-50" data-testid={`order-address-${order.id}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Users className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <span className="text-sm font-medium text-slate-800 truncate">{order.user_name}</span>
+                    </div>
+                    {order.user_email && (
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="text-xs text-slate-600 truncate">{order.user_email}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      {order.phone
+                        ? <span className="text-xs text-slate-600 truncate">{order.phone}</span>
+                        : <span className="text-xs text-slate-400 italic">Not provided</span>}
+                    </div>
+                    <div className="flex items-start gap-2 min-w-0 sm:col-span-2">
+                      <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
+                      <span className="text-xs text-slate-600 truncate">{order.address || '—'}{order.pin_code ? `, ${order.pin_code}` : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-slate-400">Payment:</span>
+                      <span className="text-xs font-medium text-slate-700 capitalize">{order.payment_method}</span>
                       {order.payment_status === 'paid' ? (
-                        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">✓ Paid</span>
+                        <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">✓ Paid</span>
                       ) : order.payment_link_sent_at && (
-                        <button
-                          type="button"
-                          onClick={() => sendPaymentLink(order.id)}
-                          disabled={!!paymentLinkSending[order.id]}
-                          className="inline-flex items-center gap-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-2.5 py-1 rounded-full border border-blue-200 transition-colors disabled:opacity-50"
-                        >
-                          {paymentLinkSending[order.id] ? 'Sending…' : '↩ Resend Payment Link'}
+                        <button type="button" onClick={() => sendPaymentLink(order.id)} disabled={!!paymentLinkSending[order.id]}
+                          className="text-[10px] font-medium bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full transition-colors disabled:opacity-50 cursor-pointer">
+                          {paymentLinkSending[order.id] ? 'Sending…' : '↩ Resend Link'}
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-600 mb-2">£{order.total_amount.toFixed(2)}</p>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) => updateOrderStatus(order.id, value)}
-                    >
-                      <SelectTrigger className="w-[180px]" data-testid={`status-select-${order.id}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="ready_for_pickup">Ready for Pick Up</SelectItem>
-                        <SelectItem value="pickup_completed">Pick Up Completed</SelectItem>
-                        <SelectItem value="ready_to_wash">Ready to Wash</SelectItem>
-                        <SelectItem value="ready_for_drop">Ready for Drop</SelectItem>
-                        <SelectItem value="drop_completed">Drop Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
-                {/* Customer Address */}
-                <div className="bg-slate-50 rounded-xl p-4 mb-4" data-testid={`order-address-${order.id}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-slate-700">Customer Address</span>
-                  </div>
-                  <p className="text-sm text-slate-800 ml-6">{order.address || 'N/A'}</p>
-                  <p className="text-sm text-slate-500 ml-6">Postcode: {order.pin_code || 'N/A'}</p>
-                </div>
+                  {/* Customer note */}
+                  {order.customer_note && (
+                    <div className="mx-5 mt-3 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-start gap-2" data-testid={`order-note-${order.id}`}>
+                      <MessageSquare className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-700 italic">{order.customer_note}</p>
+                    </div>
+                  )}
 
-                {order.customer_note && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4" data-testid={`order-note-${order.id}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <MessageSquare className="h-4 w-4 text-amber-600" />
-                      <span className="text-sm font-medium text-amber-800">Customer Note</span>
+                  {/* Order items */}
+                  <div className="px-5 pt-3 pb-2 border-t border-slate-50 mt-3">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">Order Items</p>
+                    <div className="space-y-2">
+                      {order.items.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between gap-3 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {item.category && (
+                              <span className="text-[10px] font-semibold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded shrink-0">{item.category}</span>
+                            )}
+                            <span className="text-sm text-slate-700 truncate">{item.product_name}</span>
+                            <span className="text-xs text-slate-400 shrink-0">× {item.quantity}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-slate-800 shrink-0">£{(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))}
                     </div>
-                    <p className="text-sm text-amber-700 ml-6 italic">{order.customer_note}</p>
                   </div>
-                )}
-                
-                <div className="border-t border-slate-200 pt-4 mb-4">
-                  <h4 className="text-sm font-medium text-slate-700 mb-2">Order Items:</h4>
-                  <div className="space-y-1">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="text-sm text-slate-600">
-                        • {item.category && <span className="text-slate-400">{item.category} — </span>}{item.product_name} × {item.quantity} - £{(item.price * item.quantity).toFixed(2)}
+
+                  {/* Pickup / Delivery */}
+                  <div className="grid grid-cols-2 gap-3 px-5 pb-4 pt-3 border-t border-slate-50 mt-2">
+                    <div className="bg-blue-50 rounded-xl p-3">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Clock className="h-3.5 w-3.5 text-blue-500" />
+                        <span className="text-xs font-semibold text-blue-700">Pickup</span>
                       </div>
-                    ))}
+                      <p className="text-sm font-semibold text-slate-800">{order.pickup_date ? order.pickup_date.split('-').reverse().join('/') : '—'}</p>
+                      <p className="text-xs text-slate-500">{order.pickup_time}</p>
+                      {order.pickup_instruction && <p className="text-xs text-slate-400 italic mt-1">{order.pickup_instruction}</p>}
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-3">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Clock className="h-3.5 w-3.5 text-emerald-500" />
+                        <span className="text-xs font-semibold text-emerald-700">Delivery</span>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-800">{order.delivery_date ? order.delivery_date.split('-').reverse().join('/') : '—'}</p>
+                      <p className="text-xs text-slate-500">{order.delivery_time}</p>
+                      {order.delivery_instruction && <p className="text-xs text-slate-400 italic mt-1">{order.delivery_instruction}</p>}
+                    </div>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="text-blue-700 font-medium">Pickup</span>
-                    </div>
-                    <span className="block text-slate-800 font-medium">{order.pickup_date ? order.pickup_date.split('-').reverse().join('/') : ''} at {order.pickup_time}</span>
-                    {order.pickup_instruction && (
-                      <div className="flex items-start gap-1.5 mt-1.5">
-                        <MessageSquare className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
-                        <span className="text-slate-500 italic">{order.pickup_instruction}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-3.5 w-3.5 text-green-600" />
-                      <span className="text-green-700 font-medium">Delivery</span>
-                    </div>
-                    <span className="block text-slate-800 font-medium">{order.delivery_date ? order.delivery_date.split('-').reverse().join('/') : ''} at {order.delivery_time}</span>
-                    {order.delivery_instruction && (
-                      <div className="flex items-start gap-1.5 mt-1.5">
-                        <MessageSquare className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />
-                        <span className="text-slate-500 italic">{order.delivery_instruction}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ));
+              );});
             })()}
           </TabsContent>
 
