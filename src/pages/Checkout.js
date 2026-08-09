@@ -132,6 +132,10 @@ const CheckoutForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (totalAmount < 15) {
+      toast.error('Minimum order value is £15. Please add more items to continue.');
+      return;
+    }
     setLoading(true);
 
     try {
