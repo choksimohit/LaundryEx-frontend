@@ -641,7 +641,18 @@ export const Admin = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Pickup Date *</Label>
-                          <Input type="date" value={manualOrder.pickup_date} onChange={e => setManualField('pickup_date', e.target.value)} required />
+                          <Input type="date" value={manualOrder.pickup_date} onChange={e => {
+                            const newPickup = e.target.value;
+                            setManualOrder(prev => {
+                              const updates = { ...prev, pickup_date: newPickup };
+                              if (newPickup && prev.delivery_date && prev.delivery_date <= newPickup) {
+                                const d = new Date(newPickup);
+                                d.setDate(d.getDate() + 1);
+                                updates.delivery_date = d.toISOString().split('T')[0];
+                              }
+                              return updates;
+                            });
+                          }} required />
                         </div>
                         <div>
                           <Label>Pickup Slot</Label>
@@ -658,7 +669,7 @@ export const Admin = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Delivery Date *</Label>
-                          <Input type="date" value={manualOrder.delivery_date} onChange={e => setManualField('delivery_date', e.target.value)} required />
+                          <Input type="date" value={manualOrder.delivery_date} min={(() => { if (!manualOrder.pickup_date) return ''; const d = new Date(manualOrder.pickup_date); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()} onChange={e => setManualField('delivery_date', e.target.value)} required />
                         </div>
                         <div>
                           <Label>Delivery Slot</Label>
@@ -831,7 +842,7 @@ export const Admin = () => {
                     </div>
                     <p className="text-sm text-slate-600">Customer: {order.user_name}</p>
                     {order.user_email && <p className="text-sm text-slate-600">Email: {order.user_email}</p>}
-                    {order.phone && <p className="text-sm text-slate-600">WhatsApp: {order.phone}</p>}
+                    {order.phone && <p className="text-sm text-slate-600">Mobile: {order.phone}</p>}
                     <p className="text-sm text-slate-500 mt-1">
                       Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </p>

@@ -71,7 +71,20 @@ const CheckoutForm = () => {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'pickup_date') {
+      setFormData(prev => {
+        const updates = { ...prev, pickup_date: value };
+        if (value && prev.delivery_date && prev.delivery_date <= value) {
+          const d = new Date(value);
+          d.setDate(d.getDate() + 1);
+          updates.delivery_date = d.toISOString().split('T')[0];
+        }
+        return updates;
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   // Closure dates: 19 Apr - 25 Apr 2026
@@ -272,6 +285,7 @@ const CheckoutForm = () => {
                       name="delivery_date"
                       type="date"
                       value={formData.delivery_date}
+                      min={(() => { if (!formData.pickup_date) return ''; const d = new Date(formData.pickup_date); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
                       onChange={handleChange}
                       required
                       className={`h-12 rounded-xl mt-2 ${deliveryInClosure ? 'border-red-400 bg-red-50' : ''}`}
