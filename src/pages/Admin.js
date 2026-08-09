@@ -842,7 +842,7 @@ export const Admin = () => {
                     </div>
                     <p className="text-sm text-slate-600">Customer: {order.user_name}</p>
                     {order.user_email && <p className="text-sm text-slate-600">Email: {order.user_email}</p>}
-                    {order.phone && <p className="text-sm text-slate-600">Mobile: {order.phone}</p>}
+                    <p className="text-sm text-slate-600">Mobile: {order.phone || <span className="text-slate-400 italic">Not provided</span>}</p>
                     <p className="text-sm text-slate-500 mt-1">
                       Ordered: {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </p>
