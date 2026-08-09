@@ -285,8 +285,8 @@ export const Admin = () => {
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [paymentLinkSending, setPaymentLinkSending] = useState({});
   const [promoInput, setPromoInput] = useState('');
-  const [promoApplied, setPromoApplied] = useState(null); // { code, discount_percent, description }
-  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoApplied, setPromoApplied] = useState(null);
+  const [manualPromoLoading, setManualPromoLoading] = useState(false);
 
   const sendPaymentLink = async (orderId) => {
     setPaymentLinkSending(prev => ({ ...prev, [orderId]: true }));
@@ -395,7 +395,7 @@ export const Admin = () => {
 
   const applyManualPromo = async () => {
     if (!promoInput.trim()) return;
-    setPromoLoading(true);
+    setManualPromoLoading(true);
     try {
       const res = await api.post('/admin/promo/validate', { code: promoInput.trim() });
       setPromoApplied(res.data);
@@ -404,7 +404,7 @@ export const Admin = () => {
       toast.error(err.response?.data?.detail || 'Invalid promo code');
       setPromoApplied(null);
     } finally {
-      setPromoLoading(false);
+      setManualPromoLoading(false);
     }
   };
 
@@ -777,8 +777,8 @@ export const Admin = () => {
                       {promoApplied ? (
                         <button type="button" onClick={() => { setPromoApplied(null); setPromoInput(''); }} className="px-3 py-2 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-lg whitespace-nowrap">Remove</button>
                       ) : (
-                        <button type="button" onClick={applyManualPromo} disabled={promoLoading || !promoInput.trim()} className="px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg whitespace-nowrap disabled:opacity-50">
-                          {promoLoading ? 'Checking…' : 'Apply'}
+                        <button type="button" onClick={applyManualPromo} disabled={manualPromoLoading || !promoInput.trim()} className="px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg whitespace-nowrap disabled:opacity-50">
+                          {manualPromoLoading ? 'Checking…' : 'Apply'}
                         </button>
                       )}
                     </div>
