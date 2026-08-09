@@ -910,7 +910,7 @@ export const Admin = () => {
                   <div className="space-y-1">
                     {order.items.map((item, index) => (
                       <div key={index} className="text-sm text-slate-600">
-                        • {item.product_name} × {item.quantity} - £{(item.price * item.quantity).toFixed(2)}
+                        • {item.category && <span className="text-slate-400">{item.category} — </span>}{item.product_name} × {item.quantity} - £{(item.price * item.quantity).toFixed(2)}
                       </div>
                     ))}
                   </div>
