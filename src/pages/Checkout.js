@@ -19,6 +19,40 @@ import { toast } from 'sonner';
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
+const TIME_SLOTS = [
+  { value: '08:00-10:00', label: '8:00 AM – 10:00 AM', startHour: 8 },
+  { value: '10:00-12:00', label: '10:00 AM – 12:00 PM', startHour: 10 },
+  { value: '12:00-14:00', label: '12:00 PM – 2:00 PM', startHour: 12 },
+  { value: '14:00-16:00', label: '2:00 PM – 4:00 PM', startHour: 14 },
+  { value: '16:00-18:00', label: '4:00 PM – 6:00 PM', startHour: 16 },
+  { value: '18:00-20:00', label: '6:00 PM – 8:00 PM', startHour: 18 },
+];
+
+const getMinPickupDate = () => {
+  const now = new Date();
+  const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+  const lastSlotStart = new Date(now);
+  lastSlotStart.setHours(18, 0, 0, 0);
+  if (fourHoursLater > lastSlotStart) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  }
+  return now.toISOString().split('T')[0];
+};
+
+const getValidPickupSlots = (selectedDate) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (!selectedDate || selectedDate !== today) return TIME_SLOTS;
+  const now = new Date();
+  const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+  return TIME_SLOTS.filter(slot => {
+    const slotStart = new Date();
+    slotStart.setHours(slot.startHour, 0, 0, 0);
+    return slotStart >= fourHoursLater;
+  });
+};
+
 const CheckoutForm = () => {
   const stripe = useStripe();
   const elements = useElements();
@@ -50,19 +84,19 @@ const CheckoutForm = () => {
     }
     const savedPinCode = sessionStorage.getItem('pinCode');
     
-    // Set default dates
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    
-    const deliveryDate = new Date(today);
-    deliveryDate.setDate(deliveryDate.getDate() + 2);
+    const minPickup = getMinPickupDate();
+    const validSlots = getValidPickupSlots(minPickup);
+    const defaultPickupSlot = validSlots[0]?.value || '08:00-10:00';
+
+    const deliveryDate = new Date(minPickup);
+    deliveryDate.setDate(deliveryDate.getDate() + 1);
     const deliveryStr = deliveryDate.toISOString().split('T')[0];
-    
-    setFormData(prev => ({ 
-      ...prev, 
+
+    setFormData(prev => ({
+      ...prev,
       pin_code: savedPinCode || '',
-      pickup_date: todayStr,
-      pickup_time: '10:00-12:00',
+      pickup_date: minPickup,
+      pickup_time: defaultPickupSlot,
       pickup_instruction: 'in-person',
       delivery_date: deliveryStr,
       delivery_time: '14:00-16:00',
@@ -74,7 +108,13 @@ const CheckoutForm = () => {
     const { name, value } = e.target;
     if (name === 'pickup_date') {
       setFormData(prev => {
-        const updates = { ...prev, pickup_date: value };
+        const validSlots = getValidPickupSlots(value);
+        const slotStillValid = validSlots.some(s => s.value === prev.pickup_time);
+        const updates = {
+          ...prev,
+          pickup_date: value,
+          pickup_time: slotStillValid ? prev.pickup_time : (validSlots[0]?.value || ''),
+        };
         if (value && prev.delivery_date && prev.delivery_date <= value) {
           const d = new Date(value);
           d.setDate(d.getDate() + 1);
@@ -204,6 +244,8 @@ const CheckoutForm = () => {
     return null;
   }
 
+  const validPickupSlots = getValidPickupSlots(formData.pickup_date);
+
   return (
     <div className="min-h-screen bg-slate-50" data-testid="checkout-page">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -226,6 +268,7 @@ const CheckoutForm = () => {
                       type="date"
                       value={formData.pickup_date}
                       onChange={handleChange}
+                      min={getMinPickupDate()}
                       required
                       className={`h-12 rounded-xl mt-2 ${pickupInClosure ? 'border-red-400 bg-red-50' : ''}`}
                       data-testid="pickup-date-input"
@@ -247,12 +290,9 @@ const CheckoutForm = () => {
                         <SelectValue placeholder="- Select Slot -" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="08:00-10:00">8:00 AM - 10:00 AM</SelectItem>
-                        <SelectItem value="10:00-12:00">10:00 AM - 12:00 PM</SelectItem>
-                        <SelectItem value="12:00-14:00">12:00 PM - 2:00 PM</SelectItem>
-                        <SelectItem value="14:00-16:00">2:00 PM - 4:00 PM</SelectItem>
-                        <SelectItem value="16:00-18:00">4:00 PM - 6:00 PM</SelectItem>
-                        <SelectItem value="18:00-20:00">6:00 PM - 8:00 PM</SelectItem>
+                        {validPickupSlots.map(slot => (
+                          <SelectItem key={slot.value} value={slot.value}>{slot.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
