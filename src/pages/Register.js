@@ -16,6 +16,10 @@ export const Register = () => {
     phone: '',
   });
   const [loading, setLoading] = useState(false);
+  const [phoneModal, setPhoneModal] = useState(false);
+  const [pendingAuth, setPendingAuth] = useState(null);
+  const [phoneValue, setPhoneValue] = useState('');
+  const [phoneLoading, setPhoneLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -40,15 +44,67 @@ export const Register = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await api.post('/auth/google', { token: credentialResponse.credential });
-      setAuth(response.data.token, response.data.user);
-      toast.success('Account created with Google!');
-      navigate('/services');
+      if (response.data.needs_phone) {
+        setAuth(response.data.token, response.data.user);
+        setPendingAuth(response.data);
+        setPhoneModal(true);
+      } else {
+        setAuth(response.data.token, response.data.user);
+        toast.success('Account created with Google!');
+        navigate('/services');
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Google sign-in failed');
     }
   };
 
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    if (!phoneValue.trim()) return;
+    setPhoneLoading(true);
+    try {
+      await api.patch('/auth/update-phone', { phone: phoneValue.trim() });
+      toast.success('Mobile number saved!');
+      setPhoneModal(false);
+      navigate('/services');
+    } catch (err) {
+      toast.error('Failed to save phone number. Please try again.');
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
   return (
+    <>
+    {phoneModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+          <h2 className="text-xl font-semibold text-slate-800 mb-1">One last step</h2>
+          <p className="text-sm text-slate-500 mb-6">Please add your mobile number so we can keep you updated about your orders.</p>
+          <form onSubmit={handlePhoneSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="phone_modal">Mobile Number *</Label>
+              <Input
+                id="phone_modal"
+                type="tel"
+                placeholder="+44 7700 900000"
+                value={phoneValue}
+                onChange={e => setPhoneValue(e.target.value)}
+                required
+                className="h-12 rounded-xl mt-2"
+                autoFocus
+              />
+            </div>
+            <Button type="submit" disabled={phoneLoading} className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700">
+              {phoneLoading ? 'Saving…' : 'Continue'}
+            </Button>
+            <button type="button" onClick={() => { setPhoneModal(false); navigate('/services'); }} className="w-full text-sm text-slate-400 hover:text-slate-600 pt-1">
+              Skip for now
+            </button>
+          </form>
+        </div>
+      </div>
+    )}
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 flex items-center justify-center px-4" data-testid="register-page">
       <div className="w-full max-w-md">
         <div className="bg-white/80 backdrop-blur-lg border border-white/20 shadow-2xl shadow-slate-200/50 rounded-3xl p-8">
@@ -160,5 +216,6 @@ export const Register = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
