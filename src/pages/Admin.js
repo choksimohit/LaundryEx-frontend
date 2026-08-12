@@ -682,11 +682,9 @@ export const Admin = () => {
                         <div>
                           <Label>Pickup Slot</Label>
                           <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
                             <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
                             <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
                             <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
-                            <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
                             <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
                           </select>
                         </div>
@@ -699,11 +697,9 @@ export const Admin = () => {
                         <div>
                           <Label>Delivery Slot</Label>
                           <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="08:00-10:00">8:00 AM – 10:00 AM</option>
                             <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
                             <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
                             <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
-                            <option value="16:00-18:00">4:00 PM – 6:00 PM</option>
                             <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
                           </select>
                         </div>

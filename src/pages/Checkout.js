@@ -20,11 +20,9 @@ import { toast } from 'sonner';
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 const TIME_SLOTS = [
-  { value: '08:00-10:00', label: '8:00 AM – 10:00 AM', startHour: 8 },
   { value: '10:00-12:00', label: '10:00 AM – 12:00 PM', startHour: 10 },
   { value: '12:00-14:00', label: '12:00 PM – 2:00 PM', startHour: 12 },
   { value: '14:00-16:00', label: '2:00 PM – 4:00 PM', startHour: 14 },
-  { value: '16:00-18:00', label: '4:00 PM – 6:00 PM', startHour: 16 },
   { value: '18:00-20:00', label: '6:00 PM – 8:00 PM', startHour: 18 },
 ];
 
@@ -86,7 +84,7 @@ const CheckoutForm = () => {
     
     const minPickup = getMinPickupDate();
     const validSlots = getValidPickupSlots(minPickup);
-    const defaultPickupSlot = validSlots[0]?.value || '08:00-10:00';
+    const defaultPickupSlot = validSlots[0]?.value || '10:00-12:00';
 
     const deliveryDate = new Date(minPickup);
     deliveryDate.setDate(deliveryDate.getDate() + 1);
@@ -352,11 +350,9 @@ const CheckoutForm = () => {
                         <SelectValue placeholder="- Select Slot -" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="08:00-10:00">8:00 AM - 10:00 AM</SelectItem>
                         <SelectItem value="10:00-12:00">10:00 AM - 12:00 PM</SelectItem>
                         <SelectItem value="12:00-14:00">12:00 PM - 2:00 PM</SelectItem>
                         <SelectItem value="14:00-16:00">2:00 PM - 4:00 PM</SelectItem>
-                        <SelectItem value="16:00-18:00">4:00 PM - 6:00 PM</SelectItem>
                         <SelectItem value="18:00-20:00">6:00 PM - 8:00 PM</SelectItem>
                       </SelectContent>
                     </Select>
