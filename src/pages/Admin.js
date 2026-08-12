@@ -307,7 +307,7 @@ export const Admin = () => {
     pickup_date: '', pickup_time: '10:00-12:00',
     delivery_date: '', delivery_time: '14:00-16:00',
     payment_method: 'cod', customer_note: '',
-    items: [{ product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
+    items: [{ _id: Date.now(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   };
   const [manualOrder, setManualOrder] = useState(emptyManualOrder);
 
@@ -380,7 +380,7 @@ export const Admin = () => {
 
   const addManualItem = () => setManualOrder(prev => ({
     ...prev,
-    items: [...prev.items, { product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
+    items: [...prev.items, { _id: Date.now(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   }));
 
   const removeManualItem = (idx) => setManualOrder(prev => ({
@@ -721,7 +721,7 @@ export const Admin = () => {
                           ? productList.filter(p => p.category === item.category)
                           : productList;
                         return (
-                          <div key={idx} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                          <div key={item._id} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
                             <select
                               value={item.category}
                               onChange={e => selectManualCategory(idx, e.target.value)}
