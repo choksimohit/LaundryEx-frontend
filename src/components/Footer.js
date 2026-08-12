@@ -134,11 +134,10 @@ export const Footer = () => {
         <div className="border-t border-blue-800 mt-8 md:mt-12 pt-6 md:pt-8">
           <p className="text-center text-[10px] uppercase tracking-widest text-blue-400 mb-4">Secure Payment Methods</p>
           <div className="flex flex-wrap justify-center items-center gap-3 mb-8">
-            {/* PayPal */}
-            <div className="bg-white rounded-lg px-3 py-2 h-10 flex items-center shadow-sm">
-              <svg viewBox="0 0 80 24" height="18" xmlns="http://www.w3.org/2000/svg">
-                <text x="0" y="18" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="16" fill="#003087">Pay</text>
-                <text x="28" y="18" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="16" fill="#009CDE">Pal</text>
+            {/* Stripe */}
+            <div className="bg-[#635BFF] rounded-lg px-3 py-2 h-10 flex items-center shadow-sm">
+              <svg viewBox="0 0 60 25" height="16" xmlns="http://www.w3.org/2000/svg">
+                <text x="0" y="19" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="18" fill="#ffffff" letterSpacing="-0.5">stripe</text>
               </svg>
             </div>
             {/* Klarna */}
@@ -161,14 +160,6 @@ export const Footer = () => {
                 <path d="M19 4.8a11 11 0 0 1 0 14.4A11 11 0 0 1 19 4.8z" fill="#FF5F00" />
               </svg>
               <span style={{fontFamily:'Arial,sans-serif',fontSize:'9px',fontWeight:'600',color:'#231F20',letterSpacing:'0.02em'}}>mastercard</span>
-            </div>
-            {/* Clearpay */}
-            <div className="bg-[#B2FCE4] rounded-lg px-3 py-2 h-10 flex items-center gap-1.5 shadow-sm">
-              <svg viewBox="0 0 18 18" height="16" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="9" cy="9" r="9" fill="#00D6A1"/>
-                <path d="M5 9.5l2.5 2.5 5.5-5.5" stroke="#000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              </svg>
-              <span style={{fontFamily:'Arial,sans-serif',fontSize:'10px',fontWeight:'700',color:'#000'}}>clearpay</span>
             </div>
             {/* Apple Pay */}
             <div className="bg-black rounded-lg px-3 py-2 h-10 flex items-center gap-1 shadow-sm">
