@@ -33,6 +33,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+
+let manualItemIdCounter = 0;
+const nextManualItemId = () => `manual-item-${++manualItemIdCounter}`;
 import { RichTextEditor } from '../components/RichTextEditor';
 
 const SortableCategoryItem = ({ category }) => {
@@ -307,7 +310,7 @@ export const Admin = () => {
     pickup_date: '', pickup_time: '10:00-12:00',
     delivery_date: '', delivery_time: '14:00-16:00',
     payment_method: 'cod', customer_note: '',
-    items: [{ _id: Date.now(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
+    items: [{ _id: nextManualItemId(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   };
   const [manualOrder, setManualOrder] = useState(emptyManualOrder);
 
@@ -380,7 +383,7 @@ export const Admin = () => {
 
   const addManualItem = () => setManualOrder(prev => ({
     ...prev,
-    items: [...prev.items, { _id: Date.now(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
+    items: [...prev.items, { _id: nextManualItemId(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   }));
 
   const removeManualItem = (idx) => setManualOrder(prev => ({
