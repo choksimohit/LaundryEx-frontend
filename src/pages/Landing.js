@@ -101,11 +101,11 @@ export const Landing = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-white/70">Pay in 3 with</span>
-              <div className="bg-[#FFB3C7] rounded-md px-2.5 py-1.5 h-8 flex items-center shadow-sm">
-                <svg viewBox="0 0 64 20" height="12" xmlns="http://www.w3.org/2000/svg">
-                  <text x="0" y="15" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="14" fill="#17120F">Klarna.</text>
+            <div className="mt-3 max-w-md">
+              <div className="inline-block bg-[#FFB3C7] rounded-lg px-4 py-3 shadow-lg border border-pink-300/40">
+                <p className="text-sm sm:text-base font-semibold text-[#17120F] leading-none">Pay later with</p>
+                <svg viewBox="0 0 110 32" height="26" className="mt-1" xmlns="http://www.w3.org/2000/svg">
+                  <text x="0" y="24" fontFamily="Arial, sans-serif" fontWeight="800" fontSize="24" fill="#17120F">Klarna.</text>
                 </svg>
               </div>
             </div>
