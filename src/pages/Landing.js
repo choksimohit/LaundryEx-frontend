@@ -101,6 +101,15 @@ export const Landing = () => {
               </div>
             </div>
 
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-white/70">Pay in 3 with</span>
+              <div className="bg-[#FFB3C7] rounded-md px-2.5 py-1.5 h-8 flex items-center shadow-sm">
+                <svg viewBox="0 0 64 20" height="12" xmlns="http://www.w3.org/2000/svg">
+                  <text x="0" y="15" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="14" fill="#17120F">Klarna.</text>
+                </svg>
+              </div>
+            </div>
+
             {notifyState.show && (
               <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 shadow-2xl mt-3 max-w-md">
                 {notifyState.done ? (

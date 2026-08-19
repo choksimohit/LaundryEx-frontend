@@ -97,9 +97,6 @@ export const Login = () => {
             <Button type="submit" disabled={phoneLoading} className="w-full h-12 rounded-full bg-blue-600 hover:bg-blue-700">
               {phoneLoading ? 'Saving…' : 'Continue'}
             </Button>
-            <button type="button" onClick={() => { setPhoneModal(false); afterLogin(pendingAuth); }} className="w-full text-sm text-slate-400 hover:text-slate-600 pt-1">
-              Skip for now
-            </button>
           </form>
         </div>
       </div>

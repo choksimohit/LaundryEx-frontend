@@ -309,7 +309,7 @@ export const Admin = () => {
     address: '', pin_code: '',
     pickup_date: '', pickup_time: '10:00-12:00',
     delivery_date: '', delivery_time: '14:00-16:00',
-    payment_method: 'cod', customer_note: '',
+    payment_method: 'cod', customer_note: '', status: 'pending',
     items: [{ _id: nextManualItemId(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   };
   const [manualOrder, setManualOrder] = useState(emptyManualOrder);
@@ -706,6 +706,17 @@ export const Admin = () => {
                             <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
                           </select>
                         </div>
+                      </div>
+                      <div>
+                        <Label>Order Status</Label>
+                        <select value={manualOrder.status} onChange={e => setManualField('status', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option value="pending">Pending</option>
+                          <option value="ready_for_pickup">Ready for Pick Up</option>
+                          <option value="pickup_completed">Pick Up Completed</option>
+                          <option value="ready_to_wash">Ready to Wash</option>
+                          <option value="ready_for_drop">Ready for Drop</option>
+                          <option value="drop_completed">Drop Completed</option>
+                        </select>
                       </div>
                     </div>
                   </div>
