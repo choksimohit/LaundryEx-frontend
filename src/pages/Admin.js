@@ -310,7 +310,7 @@ export const Admin = () => {
     pickup_date: '', pickup_time: '10:00-12:00',
     delivery_date: '', delivery_time: '14:00-16:00',
     payment_method: 'cod', customer_note: '', status: 'pending',
-    items: [{ _id: nextManualItemId(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
+    items: [{ _id: nextManualItemId(), product_id: '', product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   };
   const [manualOrder, setManualOrder] = useState(emptyManualOrder);
 
@@ -358,13 +358,14 @@ export const Admin = () => {
     return { ...prev, items };
   });
 
-  const selectManualProduct = (idx, productName) => {
-    const product = productList.find(p => p.name === productName);
+  const selectManualProduct = (idx, productId) => {
+    const product = productList.find(p => p.id === productId);
     setManualOrder(prev => {
       const items = [...prev.items];
       items[idx] = {
         ...items[idx],
-        product_name: productName,
+        product_id: productId,
+        product_name: product ? product.name : '',
         unit_price: product ? product.price : 0,
         category: product ? (product.category || '') : '',
         subcategory: product ? (product.subcategory || '') : '',
@@ -376,14 +377,14 @@ export const Admin = () => {
   const selectManualCategory = (idx, category) => {
     setManualOrder(prev => {
       const items = [...prev.items];
-      items[idx] = { ...items[idx], category, product_name: '', unit_price: 0, subcategory: '' };
+      items[idx] = { ...items[idx], category, product_id: '', product_name: '', unit_price: 0, subcategory: '' };
       return { ...prev, items };
     });
   };
 
   const addManualItem = () => setManualOrder(prev => ({
     ...prev,
-    items: [...prev.items, { _id: nextManualItemId(), product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
+    items: [...prev.items, { _id: nextManualItemId(), product_id: '', product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   }));
 
   const removeManualItem = (idx) => setManualOrder(prev => ({
@@ -743,13 +744,13 @@ export const Admin = () => {
                               ))}
                             </select>
                             <select
-                              value={item.product_name}
+                              value={item.product_id || ''}
                               onChange={e => selectManualProduct(idx, e.target.value)}
                               className="flex-[2] min-w-[140px] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                               <option value="">— Select item —</option>
                               {filteredProducts.map(p => (
-                                <option key={p.id || p.name} value={p.name}>
+                                <option key={p.id || p.name} value={p.id}>
                                   {p.name} — £{Number(p.price).toFixed(2)}
                                 </option>
                               ))}
