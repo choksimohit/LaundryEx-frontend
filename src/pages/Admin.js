@@ -16,7 +16,8 @@ import { ProductManagement } from './ProductManagement';
 import api from '../utils/api';
 import { toast } from 'sonner';
 import { getUser } from '../utils/auth';
-import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, EyeOff, Users, TrendingUp, Search, Star, Tag, Percent, ToggleLeft, ToggleRight, Plus, Mail, Phone } from 'lucide-react';
+import { GripVertical, MapPin, Clock, MessageSquare, Download, PenLine, Trash2, Eye, Users, TrendingUp, Search, Star, Tag, Percent, ToggleLeft, ToggleRight, Plus, Mail, Phone } from 'lucide-react';
+import EyeOff from 'lucide-react/dist/esm/icons/eye-off.js';
 import {
   DndContext,
   closestCenter,
