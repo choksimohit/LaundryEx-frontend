@@ -20,17 +20,15 @@ import { toast } from 'sonner';
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 const TIME_SLOTS = [
-  { value: '10:00-12:00', label: '10:00 AM – 12:00 PM', startHour: 10 },
-  { value: '12:00-14:00', label: '12:00 PM – 2:00 PM', startHour: 12 },
-  { value: '14:00-16:00', label: '2:00 PM – 4:00 PM', startHour: 14 },
-  { value: '18:00-20:00', label: '6:00 PM – 8:00 PM', startHour: 18 },
+  { value: '16:30-18:30', label: '4:30 PM – 6:30 PM', startHour: 16, startMinute: 30 },
+  { value: '18:30-20:30', label: '6:30 PM – 8:30 PM', startHour: 18, startMinute: 30 },
 ];
 
 const getMinPickupDate = () => {
   const now = new Date();
   const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
   const lastSlotStart = new Date(now);
-  lastSlotStart.setHours(18, 0, 0, 0);
+  lastSlotStart.setHours(18, 30, 0, 0);
   if (fourHoursLater > lastSlotStart) {
     const d = new Date(now);
     d.setDate(d.getDate() + 1);
@@ -46,7 +44,7 @@ const getValidPickupSlots = (selectedDate) => {
   const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
   return TIME_SLOTS.filter(slot => {
     const slotStart = new Date();
-    slotStart.setHours(slot.startHour, 0, 0, 0);
+    slotStart.setHours(slot.startHour, slot.startMinute || 0, 0, 0);
     return slotStart >= fourHoursLater;
   });
 };
@@ -84,7 +82,7 @@ const CheckoutForm = () => {
     
     const minPickup = getMinPickupDate();
     const validSlots = getValidPickupSlots(minPickup);
-    const defaultPickupSlot = validSlots[0]?.value || '10:00-12:00';
+    const defaultPickupSlot = validSlots[0]?.value || '16:30-18:30';
 
     const deliveryDate = new Date(minPickup);
     deliveryDate.setDate(deliveryDate.getDate() + 1);
@@ -97,7 +95,7 @@ const CheckoutForm = () => {
       pickup_time: defaultPickupSlot,
       pickup_instruction: 'in-person',
       delivery_date: deliveryStr,
-      delivery_time: '14:00-16:00',
+      delivery_time: '16:30-18:30',
       delivery_instruction: 'ring-wait'
     }));
   }, []);
@@ -350,10 +348,8 @@ const CheckoutForm = () => {
                         <SelectValue placeholder="- Select Slot -" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="10:00-12:00">10:00 AM - 12:00 PM</SelectItem>
-                        <SelectItem value="12:00-14:00">12:00 PM - 2:00 PM</SelectItem>
-                        <SelectItem value="14:00-16:00">2:00 PM - 4:00 PM</SelectItem>
-                        <SelectItem value="18:00-20:00">6:00 PM - 8:00 PM</SelectItem>
+                        <SelectItem value="16:30-18:30">4:30 PM - 6:30 PM</SelectItem>
+                        <SelectItem value="18:30-20:30">6:30 PM - 8:30 PM</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

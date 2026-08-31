@@ -307,8 +307,8 @@ export const Admin = () => {
   const emptyManualOrder = {
     customer_name: '', customer_phone: '', customer_email: '',
     address: '', pin_code: '',
-    pickup_date: '', pickup_time: '10:00-12:00',
-    delivery_date: '', delivery_time: '14:00-16:00',
+    pickup_date: '', pickup_time: '16:30-18:30',
+    delivery_date: '', delivery_time: '18:30-20:30',
     payment_method: 'cod', customer_note: '', status: 'pending',
     items: [{ _id: nextManualItemId(), product_id: '', product_name: '', quantity: 1, unit_price: 0, category: '', subcategory: '' }],
   };
@@ -320,7 +320,7 @@ export const Admin = () => {
     const deliveryDate = new Date(today);
     deliveryDate.setDate(deliveryDate.getDate() + 2);
     const deliveryStr = deliveryDate.toISOString().split('T')[0];
-    setManualOrder({ ...emptyManualOrder, pickup_date: todayStr, pickup_time: '10:00-12:00', delivery_date: deliveryStr, delivery_time: '14:00-16:00' });
+    setManualOrder({ ...emptyManualOrder, pickup_date: todayStr, pickup_time: '16:30-18:30', delivery_date: deliveryStr, delivery_time: '18:30-20:30' });
     setCustomerSearch('');
     setCustomerDropdownOpen(false);
     setPromoInput('');
@@ -686,10 +686,8 @@ export const Admin = () => {
                         <div>
                           <Label>Pickup Slot</Label>
                           <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
-                            <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
-                            <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
-                            <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
+                            <option value="16:30-18:30">4:30 PM – 6:30 PM</option>
+                            <option value="18:30-20:30">6:30 PM – 8:30 PM</option>
                           </select>
                         </div>
                       </div>
@@ -701,10 +699,8 @@ export const Admin = () => {
                         <div>
                           <Label>Delivery Slot</Label>
                           <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="10:00-12:00">10:00 AM – 12:00 PM</option>
-                            <option value="12:00-14:00">12:00 PM – 2:00 PM</option>
-                            <option value="14:00-16:00">2:00 PM – 4:00 PM</option>
-                            <option value="18:00-20:00">6:00 PM – 8:00 PM</option>
+                            <option value="16:30-18:30">4:30 PM – 6:30 PM</option>
+                            <option value="18:30-20:30">6:30 PM – 8:30 PM</option>
                           </select>
                         </div>
                       </div>
