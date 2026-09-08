@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { DatePickerField } from '../components/ui/date-picker-field';
 import { Link } from 'react-router-dom';
 import {
   Select,
@@ -672,7 +673,7 @@ export const Admin = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Pickup Date *</Label>
-                          <Input type="date" value={manualOrder.pickup_date} onChange={e => {
+                          <DatePickerField value={manualOrder.pickup_date} onChange={e => {
                             const newPickup = e.target.value;
                             setManualOrder(prev => {
                               const updates = { ...prev, pickup_date: newPickup };
@@ -683,7 +684,7 @@ export const Admin = () => {
                               }
                               return updates;
                             });
-                          }} required />
+                          }} />
                         </div>
                         <div>
                           <Label>Pickup Slot</Label>
@@ -696,7 +697,7 @@ export const Admin = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Delivery Date *</Label>
-                          <Input type="date" value={manualOrder.delivery_date} min={(() => { if (!manualOrder.pickup_date) return ''; const d = new Date(manualOrder.pickup_date); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()} onChange={e => setManualField('delivery_date', e.target.value)} required />
+                          <DatePickerField value={manualOrder.delivery_date} min={(() => { if (!manualOrder.pickup_date) return ''; const d = new Date(manualOrder.pickup_date); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()} onChange={e => setManualField('delivery_date', e.target.value)} />
                         </div>
                         <div>
                           <Label>Delivery Slot</Label>

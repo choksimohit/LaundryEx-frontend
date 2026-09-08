@@ -4,6 +4,7 @@ import { Calendar, Clock, MapPin, CreditCard, MessageSquare } from 'lucide-react
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { DatePickerField } from '../components/ui/date-picker-field';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import {
   Select,
@@ -258,14 +259,12 @@ const CheckoutForm = () => {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="pickup_date">Collection Date *</Label>
-                    <Input
+                    <DatePickerField
                       id="pickup_date"
                       name="pickup_date"
-                      type="date"
                       value={formData.pickup_date}
                       onChange={handleChange}
                       min={getMinPickupDate()}
-                      required
                       className={`h-12 rounded-xl mt-2 ${pickupInClosure ? 'border-red-400 bg-red-50' : ''}`}
                       data-testid="pickup-date-input"
                     />
@@ -320,14 +319,12 @@ const CheckoutForm = () => {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="delivery_date">Delivery Date *</Label>
-                    <Input
+                    <DatePickerField
                       id="delivery_date"
                       name="delivery_date"
-                      type="date"
                       value={formData.delivery_date}
                       min={(() => { if (!formData.pickup_date) return ''; const d = new Date(formData.pickup_date); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
                       onChange={handleChange}
-                      required
                       className={`h-12 rounded-xl mt-2 ${deliveryInClosure ? 'border-red-400 bg-red-50' : ''}`}
                       data-testid="delivery-date-input"
                     />
