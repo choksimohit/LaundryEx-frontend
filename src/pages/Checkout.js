@@ -25,29 +25,58 @@ const TIME_SLOTS = [
   { value: '18:30-20:30', label: '6:30 PM – 8:30 PM', startHour: 18, startMinute: 30 },
 ];
 
-const getMinPickupDate = () => {
-  const now = new Date();
-  const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
-  const lastSlotStart = new Date(now);
-  lastSlotStart.setHours(18, 30, 0, 0);
-  if (fourHoursLater > lastSlotStart) {
-    const d = new Date(now);
+const PICKUP_LEAD_HOURS = 12;
+const DELIVERY_LEAD_HOURS = 48;
+
+const toDateInputString = (d) => d.toISOString().split('T')[0];
+
+const slotStartDateTime = (dateStr, slot) => {
+  const d = new Date(`${dateStr}T00:00:00`);
+  d.setHours(slot.startHour, slot.startMinute || 0, 0, 0);
+  return d;
+};
+
+// Earliest date (today or later) that has at least one slot starting on/after the threshold.
+const earliestDateWithSlot = (threshold, fromDate) => {
+  const d = new Date(fromDate);
+  d.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 30; i++) {
+    const dateStr = toDateInputString(d);
+    if (TIME_SLOTS.some(slot => slotStartDateTime(dateStr, slot) >= threshold)) {
+      return dateStr;
+    }
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
   }
-  return now.toISOString().split('T')[0];
+  return toDateInputString(d);
+};
+
+// Pickup must start at least PICKUP_LEAD_HOURS from now.
+const getMinPickupDate = () => {
+  const threshold = new Date(Date.now() + PICKUP_LEAD_HOURS * 60 * 60 * 1000);
+  return earliestDateWithSlot(threshold, new Date());
 };
 
 const getValidPickupSlots = (selectedDate) => {
-  const today = new Date().toISOString().split('T')[0];
-  if (!selectedDate || selectedDate !== today) return TIME_SLOTS;
-  const now = new Date();
-  const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
-  return TIME_SLOTS.filter(slot => {
-    const slotStart = new Date();
-    slotStart.setHours(slot.startHour, slot.startMinute || 0, 0, 0);
-    return slotStart >= fourHoursLater;
-  });
+  if (!selectedDate) return TIME_SLOTS;
+  const threshold = new Date(Date.now() + PICKUP_LEAD_HOURS * 60 * 60 * 1000);
+  return TIME_SLOTS.filter(slot => slotStartDateTime(selectedDate, slot) >= threshold);
+};
+
+// Delivery must start at least DELIVERY_LEAD_HOURS after the chosen pickup slot's start.
+const getMinDeliveryDate = (pickupDate, pickupTime) => {
+  if (!pickupDate) return '';
+  const pickupSlot = TIME_SLOTS.find(s => s.value === pickupTime) || TIME_SLOTS[0];
+  const pickupStart = slotStartDateTime(pickupDate, pickupSlot);
+  const threshold = new Date(pickupStart.getTime() + DELIVERY_LEAD_HOURS * 60 * 60 * 1000);
+  return earliestDateWithSlot(threshold, new Date(`${pickupDate}T00:00:00`));
+};
+
+const getValidDeliverySlots = (pickupDate, pickupTime, deliveryDate) => {
+  if (!pickupDate || !deliveryDate) return TIME_SLOTS;
+  const pickupSlot = TIME_SLOTS.find(s => s.value === pickupTime) || TIME_SLOTS[0];
+  const pickupStart = slotStartDateTime(pickupDate, pickupSlot);
+  const threshold = new Date(pickupStart.getTime() + DELIVERY_LEAD_HOURS * 60 * 60 * 1000);
+  return TIME_SLOTS.filter(slot => slotStartDateTime(deliveryDate, slot) >= threshold);
 };
 
 const CheckoutForm = () => {
@@ -83,11 +112,11 @@ const CheckoutForm = () => {
     
     const minPickup = getMinPickupDate();
     const validSlots = getValidPickupSlots(minPickup);
-    const defaultPickupSlot = validSlots[0]?.value || '16:30-18:30';
+    const defaultPickupSlot = validSlots[0]?.value || TIME_SLOTS[0].value;
 
-    const deliveryDate = new Date(minPickup);
-    deliveryDate.setDate(deliveryDate.getDate() + 1);
-    const deliveryStr = deliveryDate.toISOString().split('T')[0];
+    const minDelivery = getMinDeliveryDate(minPickup, defaultPickupSlot);
+    const validDeliverySlots = getValidDeliverySlots(minPickup, defaultPickupSlot, minDelivery);
+    const defaultDeliverySlot = validDeliverySlots[0]?.value || TIME_SLOTS[0].value;
 
     setFormData(prev => ({
       ...prev,
@@ -95,11 +124,27 @@ const CheckoutForm = () => {
       pickup_date: minPickup,
       pickup_time: defaultPickupSlot,
       pickup_instruction: 'in-person',
-      delivery_date: deliveryStr,
-      delivery_time: '16:30-18:30',
+      delivery_date: minDelivery,
+      delivery_time: defaultDeliverySlot,
       delivery_instruction: 'ring-wait'
     }));
   }, []);
+
+  // Recompute delivery_date/delivery_time so they still satisfy the 48h-after-pickup rule.
+  const reconcileDelivery = (updates, prev) => {
+    const pickupDate = updates.pickup_date ?? prev.pickup_date;
+    const pickupTime = updates.pickup_time ?? prev.pickup_time;
+    const minDelivery = getMinDeliveryDate(pickupDate, pickupTime);
+    const currentDeliveryDate = updates.delivery_date ?? prev.delivery_date;
+    const deliveryDate = (currentDeliveryDate && currentDeliveryDate >= minDelivery) ? currentDeliveryDate : minDelivery;
+    const validDeliverySlots = getValidDeliverySlots(pickupDate, pickupTime, deliveryDate);
+    const currentDeliveryTime = updates.delivery_time ?? prev.delivery_time;
+    const deliveryTimeStillValid = validDeliverySlots.some(s => s.value === currentDeliveryTime);
+    return {
+      delivery_date: deliveryDate,
+      delivery_time: deliveryTimeStillValid ? currentDeliveryTime : (validDeliverySlots[0]?.value || TIME_SLOTS[0].value),
+    };
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,20 +153,31 @@ const CheckoutForm = () => {
         const validSlots = getValidPickupSlots(value);
         const slotStillValid = validSlots.some(s => s.value === prev.pickup_time);
         const updates = {
-          ...prev,
           pickup_date: value,
           pickup_time: slotStillValid ? prev.pickup_time : (validSlots[0]?.value || ''),
         };
-        if (value && prev.delivery_date && prev.delivery_date <= value) {
-          const d = new Date(value);
-          d.setDate(d.getDate() + 1);
-          updates.delivery_date = d.toISOString().split('T')[0];
-        }
-        return updates;
+        return { ...prev, ...updates, ...reconcileDelivery(updates, prev) };
+      });
+    } else if (name === 'delivery_date') {
+      setFormData(prev => {
+        const validDeliverySlots = getValidDeliverySlots(prev.pickup_date, prev.pickup_time, value);
+        const slotStillValid = validDeliverySlots.some(s => s.value === prev.delivery_time);
+        return {
+          ...prev,
+          delivery_date: value,
+          delivery_time: slotStillValid ? prev.delivery_time : (validDeliverySlots[0]?.value || TIME_SLOTS[0].value),
+        };
       });
     } else {
       setFormData({ ...formData, [name]: value });
     }
+  };
+
+  const handlePickupTimeChange = (value) => {
+    setFormData(prev => {
+      const updates = { pickup_time: value };
+      return { ...prev, ...updates, ...reconcileDelivery(updates, prev) };
+    });
   };
 
   // Closure dates: 19 Apr - 25 Apr 2026
@@ -242,6 +298,8 @@ const CheckoutForm = () => {
   }
 
   const validPickupSlots = getValidPickupSlots(formData.pickup_date);
+  const validDeliverySlots = getValidDeliverySlots(formData.pickup_date, formData.pickup_time, formData.delivery_date);
+  const minDeliveryDate = getMinDeliveryDate(formData.pickup_date, formData.pickup_time);
 
   return (
     <div className="min-h-screen bg-slate-50" data-testid="checkout-page">
@@ -278,7 +336,7 @@ const CheckoutForm = () => {
                     <Label htmlFor="pickup_time">Collection Slot *</Label>
                     <Select
                       value={formData.pickup_time}
-                      onValueChange={(value) => setFormData({ ...formData, pickup_time: value })}
+                      onValueChange={handlePickupTimeChange}
                       required
                     >
                       <SelectTrigger className="h-12 rounded-xl mt-2" data-testid="pickup-slot-select">
@@ -323,7 +381,7 @@ const CheckoutForm = () => {
                       id="delivery_date"
                       name="delivery_date"
                       value={formData.delivery_date}
-                      min={(() => { if (!formData.pickup_date) return ''; const d = new Date(formData.pickup_date); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
+                      min={minDeliveryDate}
                       onChange={handleChange}
                       className={`h-12 rounded-xl mt-2 ${deliveryInClosure ? 'border-red-400 bg-red-50' : ''}`}
                       data-testid="delivery-date-input"
@@ -345,8 +403,9 @@ const CheckoutForm = () => {
                         <SelectValue placeholder="- Select Slot -" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="16:30-18:30">4:30 PM - 6:30 PM</SelectItem>
-                        <SelectItem value="18:30-20:30">6:30 PM - 8:30 PM</SelectItem>
+                        {validDeliverySlots.map(slot => (
+                          <SelectItem key={slot.value} value={slot.value}>{slot.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
