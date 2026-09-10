@@ -46,56 +46,9 @@ const TIME_SLOTS = [
   { value: '18:30-20:30', label: '6:30 PM – 8:30 PM', startHour: 18, startMinute: 30 },
 ];
 
-const PICKUP_LEAD_HOURS = 12;
-const DELIVERY_LEAD_HOURS = 48;
-
 const toDateInputString = (d) => d.toISOString().split('T')[0];
 
-const slotStartDateTime = (dateStr, slot) => {
-  const d = new Date(`${dateStr}T00:00:00`);
-  d.setHours(slot.startHour, slot.startMinute || 0, 0, 0);
-  return d;
-};
-
-const earliestDateWithSlot = (threshold, fromDate) => {
-  const d = new Date(fromDate);
-  d.setHours(0, 0, 0, 0);
-  for (let i = 0; i < 30; i++) {
-    const dateStr = toDateInputString(d);
-    if (TIME_SLOTS.some(slot => slotStartDateTime(dateStr, slot) >= threshold)) {
-      return dateStr;
-    }
-    d.setDate(d.getDate() + 1);
-  }
-  return toDateInputString(d);
-};
-
-const getMinPickupDate = () => {
-  const threshold = new Date(Date.now() + PICKUP_LEAD_HOURS * 60 * 60 * 1000);
-  return earliestDateWithSlot(threshold, new Date());
-};
-
-const getValidPickupSlots = (selectedDate) => {
-  if (!selectedDate) return TIME_SLOTS;
-  const threshold = new Date(Date.now() + PICKUP_LEAD_HOURS * 60 * 60 * 1000);
-  return TIME_SLOTS.filter(slot => slotStartDateTime(selectedDate, slot) >= threshold);
-};
-
-const getMinDeliveryDate = (pickupDate, pickupTime) => {
-  if (!pickupDate) return '';
-  const pickupSlot = TIME_SLOTS.find(s => s.value === pickupTime) || TIME_SLOTS[0];
-  const pickupStart = slotStartDateTime(pickupDate, pickupSlot);
-  const threshold = new Date(pickupStart.getTime() + DELIVERY_LEAD_HOURS * 60 * 60 * 1000);
-  return earliestDateWithSlot(threshold, new Date(`${pickupDate}T00:00:00`));
-};
-
-const getValidDeliverySlots = (pickupDate, pickupTime, deliveryDate) => {
-  if (!pickupDate || !deliveryDate) return TIME_SLOTS;
-  const pickupSlot = TIME_SLOTS.find(s => s.value === pickupTime) || TIME_SLOTS[0];
-  const pickupStart = slotStartDateTime(pickupDate, pickupSlot);
-  const threshold = new Date(pickupStart.getTime() + DELIVERY_LEAD_HOURS * 60 * 60 * 1000);
-  return TIME_SLOTS.filter(slot => slotStartDateTime(deliveryDate, slot) >= threshold);
-};
+const weekdayShort = (dateStr) => new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short' });
 
 const SortableCategoryItem = ({ category }) => {
   const {
@@ -374,13 +327,11 @@ export const Admin = () => {
   const [manualOrder, setManualOrder] = useState(emptyManualOrder);
 
   const openManualOrder = async () => {
-    const minPickup = getMinPickupDate();
-    const validPickupSlots = getValidPickupSlots(minPickup);
-    const defaultPickupSlot = validPickupSlots[0]?.value || TIME_SLOTS[0].value;
-    const minDelivery = getMinDeliveryDate(minPickup, defaultPickupSlot);
-    const validDeliverySlots = getValidDeliverySlots(minPickup, defaultPickupSlot, minDelivery);
-    const defaultDeliverySlot = validDeliverySlots[0]?.value || TIME_SLOTS[0].value;
-    setManualOrder({ ...emptyManualOrder, pickup_date: minPickup, pickup_time: defaultPickupSlot, delivery_date: minDelivery, delivery_time: defaultDeliverySlot });
+    const todayStr = toDateInputString(new Date());
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 2);
+    const deliveryStr = toDateInputString(deliveryDate);
+    setManualOrder({ ...emptyManualOrder, pickup_date: todayStr, pickup_time: TIME_SLOTS[0].value, delivery_date: deliveryStr, delivery_time: TIME_SLOTS[0].value });
     setCustomerSearch('');
     setCustomerDropdownOpen(false);
     setPromoInput('');
@@ -411,37 +362,6 @@ export const Admin = () => {
   };
 
   const setManualField = (field, value) => setManualOrder(prev => ({ ...prev, [field]: value }));
-
-  // Recompute delivery_date/delivery_time so they still satisfy the 48h-after-pickup rule.
-  const reconcileManualDelivery = (updates, prev) => {
-    const pickupDate = updates.pickup_date ?? prev.pickup_date;
-    const pickupTime = updates.pickup_time ?? prev.pickup_time;
-    const minDelivery = getMinDeliveryDate(pickupDate, pickupTime);
-    const currentDeliveryDate = updates.delivery_date ?? prev.delivery_date;
-    const deliveryDate = (currentDeliveryDate && currentDeliveryDate >= minDelivery) ? currentDeliveryDate : minDelivery;
-    const validDeliverySlots = getValidDeliverySlots(pickupDate, pickupTime, deliveryDate);
-    const currentDeliveryTime = updates.delivery_time ?? prev.delivery_time;
-    const deliveryTimeStillValid = validDeliverySlots.some(s => s.value === currentDeliveryTime);
-    return {
-      delivery_date: deliveryDate,
-      delivery_time: deliveryTimeStillValid ? currentDeliveryTime : (validDeliverySlots[0]?.value || TIME_SLOTS[0].value),
-    };
-  };
-
-  const setManualPickupTime = (value) => setManualOrder(prev => {
-    const updates = { pickup_time: value };
-    return { ...prev, ...updates, ...reconcileManualDelivery(updates, prev) };
-  });
-
-  const setManualDeliveryDate = (value) => setManualOrder(prev => {
-    const validDeliverySlots = getValidDeliverySlots(prev.pickup_date, prev.pickup_time, value);
-    const slotStillValid = validDeliverySlots.some(s => s.value === prev.delivery_time);
-    return {
-      ...prev,
-      delivery_date: value,
-      delivery_time: slotStillValid ? prev.delivery_time : (validDeliverySlots[0]?.value || TIME_SLOTS[0].value),
-    };
-  });
 
   const setManualItem = (idx, field, value) => setManualOrder(prev => {
     const items = [...prev.items];
@@ -761,23 +681,12 @@ export const Admin = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Pickup Date *</Label>
-                          <DatePickerField value={manualOrder.pickup_date} min={getMinPickupDate()} onChange={e => {
-                            const newPickup = e.target.value;
-                            setManualOrder(prev => {
-                              const validSlots = getValidPickupSlots(newPickup);
-                              const slotStillValid = validSlots.some(s => s.value === prev.pickup_time);
-                              const updates = {
-                                pickup_date: newPickup,
-                                pickup_time: slotStillValid ? prev.pickup_time : (validSlots[0]?.value || TIME_SLOTS[0].value),
-                              };
-                              return { ...prev, ...updates, ...reconcileManualDelivery(updates, prev) };
-                            });
-                          }} />
+                          <DatePickerField value={manualOrder.pickup_date} onChange={e => setManualField('pickup_date', e.target.value)} />
                         </div>
                         <div>
                           <Label>Pickup Slot</Label>
-                          <select value={manualOrder.pickup_time} onChange={e => setManualPickupTime(e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            {getValidPickupSlots(manualOrder.pickup_date).map(slot => (
+                          <select value={manualOrder.pickup_time} onChange={e => setManualField('pickup_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {TIME_SLOTS.map(slot => (
                               <option key={slot.value} value={slot.value}>{slot.label}</option>
                             ))}
                           </select>
@@ -786,12 +695,12 @@ export const Admin = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Delivery Date *</Label>
-                          <DatePickerField value={manualOrder.delivery_date} min={getMinDeliveryDate(manualOrder.pickup_date, manualOrder.pickup_time)} onChange={e => setManualDeliveryDate(e.target.value)} />
+                          <DatePickerField value={manualOrder.delivery_date} onChange={e => setManualField('delivery_date', e.target.value)} />
                         </div>
                         <div>
                           <Label>Delivery Slot</Label>
                           <select value={manualOrder.delivery_time} onChange={e => setManualField('delivery_time', e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            {getValidDeliverySlots(manualOrder.pickup_date, manualOrder.pickup_time, manualOrder.delivery_date).map(slot => (
+                            {TIME_SLOTS.map(slot => (
                               <option key={slot.value} value={slot.value}>{slot.label}</option>
                             ))}
                           </select>
@@ -1102,7 +1011,7 @@ export const Admin = () => {
                         <Clock className="h-3.5 w-3.5 text-blue-500" />
                         <span className="text-xs font-semibold text-blue-700">Pickup</span>
                       </div>
-                      <p className="text-sm font-semibold text-slate-800">{order.pickup_date ? order.pickup_date.split('-').reverse().join('/') : '—'}</p>
+                      <p className="text-sm font-semibold text-slate-800">{order.pickup_date ? `${weekdayShort(order.pickup_date)}, ${order.pickup_date.split('-').reverse().join('/')}` : '—'}</p>
                       <p className="text-xs text-slate-500">{order.pickup_time}</p>
                       {order.pickup_instruction && <p className="text-xs text-slate-400 italic mt-1">{order.pickup_instruction}</p>}
                     </div>
@@ -1111,7 +1020,7 @@ export const Admin = () => {
                         <Clock className="h-3.5 w-3.5 text-emerald-500" />
                         <span className="text-xs font-semibold text-emerald-700">Delivery</span>
                       </div>
-                      <p className="text-sm font-semibold text-slate-800">{order.delivery_date ? order.delivery_date.split('-').reverse().join('/') : '—'}</p>
+                      <p className="text-sm font-semibold text-slate-800">{order.delivery_date ? `${weekdayShort(order.delivery_date)}, ${order.delivery_date.split('-').reverse().join('/')}` : '—'}</p>
                       <p className="text-xs text-slate-500">{order.delivery_time}</p>
                       {order.delivery_instruction && <p className="text-xs text-slate-400 italic mt-1">{order.delivery_instruction}</p>}
                     </div>
