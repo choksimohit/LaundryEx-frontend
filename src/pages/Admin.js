@@ -294,6 +294,35 @@ export const Admin = () => {
     }
   };
 
+  const [scheduleEditOrder, setScheduleEditOrder] = useState(null);
+  const [scheduleForm, setScheduleForm] = useState({ pickup_date: '', pickup_time: '', delivery_date: '', delivery_time: '' });
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+
+  const openScheduleEdit = (order) => {
+    setScheduleEditOrder(order);
+    setScheduleForm({
+      pickup_date: order.pickup_date || '',
+      pickup_time: order.pickup_time || TIME_SLOTS[0].value,
+      delivery_date: order.delivery_date || '',
+      delivery_time: order.delivery_time || TIME_SLOTS[0].value,
+    });
+  };
+
+  const saveSchedule = async () => {
+    if (!scheduleEditOrder) return;
+    setScheduleSaving(true);
+    try {
+      await api.patch(`/admin/orders/${scheduleEditOrder.id}/schedule`, scheduleForm);
+      toast.success('Pickup/delivery schedule updated — customer notified');
+      setScheduleEditOrder(null);
+      loadOrders();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update schedule');
+    } finally {
+      setScheduleSaving(false);
+    }
+  };
+
   const [manualOrderOpen, setManualOrderOpen] = useState(false);
   const [manualOrderLoading, setManualOrderLoading] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
@@ -819,6 +848,51 @@ export const Admin = () => {
               </DialogContent>
             </Dialog>
 
+            <Dialog open={!!scheduleEditOrder} onOpenChange={(open) => { if (!open) setScheduleEditOrder(null); }}>
+              <DialogContent className="max-w-md w-full">
+                <DialogHeader>
+                  <DialogTitle>Edit Pickup & Delivery{scheduleEditOrder ? ` — Order #${scheduleEditOrder.order_number || scheduleEditOrder.id.slice(0, 8)}` : ''}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Pickup Date</Label>
+                      <DatePickerField value={scheduleForm.pickup_date} onChange={e => setScheduleForm(prev => ({ ...prev, pickup_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>Pickup Slot</Label>
+                      <select value={scheduleForm.pickup_time} onChange={e => setScheduleForm(prev => ({ ...prev, pickup_time: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {TIME_SLOTS.map(slot => (
+                          <option key={slot.value} value={slot.value}>{slot.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Delivery Date</Label>
+                      <DatePickerField value={scheduleForm.delivery_date} onChange={e => setScheduleForm(prev => ({ ...prev, delivery_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>Delivery Slot</Label>
+                      <select value={scheduleForm.delivery_time} onChange={e => setScheduleForm(prev => ({ ...prev, delivery_time: e.target.value }))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {TIME_SLOTS.map(slot => (
+                          <option key={slot.value} value={slot.value}>{slot.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400">The customer will be notified by WhatsApp and email of the new schedule.</p>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setScheduleEditOrder(null)}>Cancel</Button>
+                  <Button type="button" onClick={saveSchedule} disabled={scheduleSaving} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    {scheduleSaving ? 'Saving…' : 'Save & Notify Customer'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             {/* Sort & Filter bar */}
             <div className="bg-white rounded-2xl p-4 border border-slate-200 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
               <div className="relative flex-1 min-w-0">
@@ -1005,7 +1079,14 @@ export const Admin = () => {
                   </div>
 
                   {/* Pickup / Delivery */}
-                  <div className="grid grid-cols-2 gap-3 px-5 pb-4 pt-3 border-t border-slate-50 mt-2">
+                  <div className="px-5 pb-4 pt-3 border-t border-slate-50 mt-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Schedule</p>
+                      <button type="button" onClick={() => openScheduleEdit(order)} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                        <PenLine className="h-3 w-3" /> Edit
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                     <div className="bg-blue-50 rounded-xl p-3">
                       <div className="flex items-center gap-1.5 mb-1">
                         <Clock className="h-3.5 w-3.5 text-blue-500" />
@@ -1023,6 +1104,7 @@ export const Admin = () => {
                       <p className="text-sm font-semibold text-slate-800">{order.delivery_date ? `${weekdayShort(order.delivery_date)}, ${order.delivery_date.split('-').reverse().join('/')}` : '—'}</p>
                       <p className="text-xs text-slate-500">{order.delivery_time}</p>
                       {order.delivery_instruction && <p className="text-xs text-slate-400 italic mt-1">{order.delivery_instruction}</p>}
+                    </div>
                     </div>
                   </div>
                 </div>
