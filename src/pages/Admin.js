@@ -1082,9 +1082,11 @@ export const Admin = () => {
                   <div className="px-5 pb-4 pt-3 border-t border-slate-50 mt-2">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Schedule</p>
-                      <button type="button" onClick={() => openScheduleEdit(order)} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                        <PenLine className="h-3 w-3" /> Edit
-                      </button>
+                      {order.status !== 'drop_completed' && (
+                        <button type="button" onClick={() => openScheduleEdit(order)} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                          <PenLine className="h-3 w-3" /> Edit
+                        </button>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                     <div className="bg-blue-50 rounded-xl p-3">
