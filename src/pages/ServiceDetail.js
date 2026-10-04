@@ -345,7 +345,7 @@ export const ServiceDetail = () => {
         {/* CTA */}
         <div className="bg-blue-600 rounded-2xl p-8 md:p-12 text-center text-white">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to book?</h2>
-          <p className="text-blue-100 mb-6 max-w-md mx-auto">Free doorstep collection across Colchester. Use code <span className="font-bold text-white">WELCOME20</span> for 20% off your first order.</p>
+          <p className="text-blue-100 mb-6 max-w-md mx-auto">Free doorstep collection across Colchester.</p>
           <Button
             onClick={() => navigate('/order')}
             className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-3 rounded-full h-auto"

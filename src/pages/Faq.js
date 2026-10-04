@@ -79,7 +79,7 @@ const FAQS = [
     items: [
       {
         q: 'How much does the laundry service cost?',
-        a: 'Pricing varies by service and quantity. You can see full pricing on our order page after entering your postcode. New customers save 20% on their first order with code WELCOME20.',
+        a: 'Pricing varies by service and quantity. You can see full pricing on our order page after entering your postcode.',
       },
       {
         q: 'Is there a minimum order?',
@@ -91,7 +91,7 @@ const FAQS = [
       },
       {
         q: 'Can I get a discount on my first order?',
-        a: 'Yes — use code WELCOME20 at checkout to get 20% off your first order. The code is valid once per customer.',
+        a: 'We occasionally run promotional offers with discount codes — keep an eye on our website and emails for current promotions you can apply at checkout.',
       },
     ],
   },

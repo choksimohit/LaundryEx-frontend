@@ -55,7 +55,7 @@ const AREAS = {
     intro: [
       'Wivenhoe is a riverside town just east of Colchester in the CO7 9 postcode area, home to a mix of long-term residents, young professionals, and students at the nearby University of Essex campus. For many people here, managing laundry alongside work or study is one of the most repetitive and frustrating weekly tasks.',
       'Laundry Express collects from your door anywhere in Wivenhoe and returns everything clean, dry, and ready within 24 to 48 hours. Students without access to machines, or professionals with no time to spare, can replace the launderette trip entirely. We handle all loads — everyday washing, ironing, dry cleaning for smarter items, and larger household loads like duvets and bedding.',
-      'Enter your postcode below to check availability and book a slot. New customers get 20% off their first order with code WELCOME20.',
+      'Enter your postcode below to check availability and book a slot.',
     ],
     highlights: [
       'Ideal for University of Essex students and campus-area residents',
@@ -109,7 +109,7 @@ const AREAS = {
     intro: [
       'Mile End sits on the northern edge of Colchester in the CO4 5 postcode area — a large, mainly residential community that connects north Colchester to the wider city. With a growing number of families and working households, demand for time-saving doorstep services continues to increase.',
       'Laundry Express serves Mile End with free collection and delivery, offering the full range of laundry services. Wash and fold, wash and iron, ironing only, dry cleaning, household items including duvets and curtains, clothing alterations, and shoe cleaning — everything is collected from your door and returned within the agreed turnaround.',
-      'There\'s no need to set aside time for laundry when we can handle it for you. Enter your postcode to check availability. New customers save 20% on their first order with code WELCOME20.',
+      'There\'s no need to set aside time for laundry when we can handle it for you. Enter your postcode to check availability.',
     ],
     highlights: [
       'Full coverage of the CO4 5 postcode area',
@@ -357,7 +357,7 @@ export const AreaDetail = () => {
         <div className="bg-blue-600 rounded-2xl p-8 md:p-12 text-center text-white">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to book in {area.name}?</h2>
           <p className="text-blue-100 mb-6 max-w-md mx-auto">
-            Enter your postcode to get started. New customers get <span className="font-bold text-white">20% off</span> their first order with code WELCOME20.
+            Enter your postcode to get started.
           </p>
           <div className="flex gap-2 max-w-sm mx-auto mb-4">
             <Input

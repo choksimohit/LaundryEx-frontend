@@ -237,7 +237,7 @@ const CheckoutForm = () => {
         ...formData,
         total_amount: grandTotal,
         delivery_charge: deliveryCharge,
-        promo_code: promoApplied ? 'WELCOME20' : '',
+        promo_code: promoApplied ? promoCode.trim().toUpperCase() : '',
         discount_amount: discount,
       };
 
