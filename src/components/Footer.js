@@ -114,7 +114,7 @@ export const Footer = () => {
                     ['Shrub End', 'shrub-end'],
                     ['Mile End', 'mile-end'],
                     ['Wivenhoe', 'wivenhoe'],
-                    ['West Mersea', 'west-mersea'],
+                    ['Marks Tey', 'marks-tey'],
                     ['Coggeshall', 'coggeshall'],
                   ].map(([label, slug]) => (
                     <li key={slug}>

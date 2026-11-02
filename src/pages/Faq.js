@@ -12,7 +12,7 @@ const FAQS = [
       },
       {
         q: 'What areas do you cover?',
-        a: 'We cover Colchester and surrounding areas including Stanway (CO3 0, CO3 8), Highwoods (CO4 9), Lexden (CO3 3, CO3 4), Shrub End (CO2 7–9), Mile End (CO4 5), Wivenhoe (CO7 9), West Mersea (CO5 7), and Coggeshall (CO6 1). Enter your postcode on our order page to confirm coverage instantly.',
+        a: 'We cover Colchester and surrounding areas including Stanway (CO3 0, CO3 8), Highwoods (CO4 9), Lexden (CO3 3, CO3 4), Shrub End (CO2 7–9), Mile End (CO4 5), Wivenhoe (CO7 9), Marks Tey (CO6 1), and Coggeshall (CO6 1). Enter your postcode on our order page to confirm coverage instantly.',
       },
       {
         q: 'What are your collection hours?',
